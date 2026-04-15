@@ -40,7 +40,7 @@ https://store.steampowered.com/app/3041230/Windrose/
 ## Usage
 
 ```powershell
-.\scripts\pwsh\download_steam_trailers.ps1 -AppId <ID> [options]
+.\download_steam_trailers.ps1 -AppId <ID> [options]
 ```
 
 ---
@@ -49,7 +49,7 @@ https://store.steampowered.com/app/3041230/Windrose/
 
 ### See what trailers exist before downloading anything
 ```powershell
-.\scripts\pwsh\download_steam_trailers.ps1 -AppId 275850 -ListOnly
+.\download_steam_trailers.ps1 -AppId 275850 -ListOnly
 ```
 Prints a numbered list, newest first. No files downloaded.
 
@@ -66,7 +66,7 @@ Found 43 trailer(s) — newest first:
 
 ### Interactive mode (default — no filter flags)
 ```powershell
-.\scripts\pwsh\download_steam_trailers.ps1 -AppId 275850 -OutputDir .\NMS_trailers
+.\download_steam_trailers.ps1 -AppId 275850 -OutputDir .\NMS_trailers
 ```
 Lists all trailers then prompts:
 ```
@@ -85,7 +85,7 @@ Your choice: _
 
 ### Download all trailers
 ```powershell
-.\scripts\pwsh\download_steam_trailers.ps1 -AppId 3041230 -OutputDir .\images
+.\download_steam_trailers.ps1 -AppId 3041230 -OutputDir .\images
 ```
 Downloads every trailer for the app into the specified folder.
 
@@ -94,10 +94,10 @@ Downloads every trailer for the app into the specified folder.
 ### Download the N most recent trailers
 ```powershell
 # Most recent 1
-.\scripts\pwsh\download_steam_trailers.ps1 -AppId 275850 -Latest 1 -OutputDir .\NMS_trailers
+.\download_steam_trailers.ps1 -AppId 275850 -Latest 1 -OutputDir .\NMS_trailers
 
 # Most recent 3
-.\scripts\pwsh\download_steam_trailers.ps1 -AppId 275850 -Latest 3 -OutputDir .\NMS_trailers
+.\download_steam_trailers.ps1 -AppId 275850 -Latest 3 -OutputDir .\NMS_trailers
 ```
 Steam's API always returns trailers newest-first, so `-Latest 1` is always the
 most recently published trailer.

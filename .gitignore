@@ -1,0 +1,38 @@
+# ── Secrets / local config ────────────────────────────────────────────────
+.env
+.env.local
+*.env
+!.env.example
+
+# ── Logs ─────────────────────────────────────────────────────────────────
+logs/*
+!logs/.gitkeep
+
+# ── Downloaded media / script output (never commit review-copy assets) ────
+trailers/
+images/
+*_trailers/
+NMS_trailers/
+downloads/
+dist/
+
+# ── OS junk ─────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── Editor ──────────────────────────────────────────────────────────────
+.vscode/*
+!.vscode/extensions.json
+*.swp
+
+# ── Future app build artifacts (Tauri / Node / Rust) ───────────────────
+node_modules/
+target/
+src-tauri/target/
+build/
+out/
+*.log
+
+# ── PowerShell ──────────────────────────────────────────────────────────
+*.ps1xml.bak

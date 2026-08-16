@@ -35,6 +35,9 @@ if (hasTauri) {
     if (cmd === "get_default_download_dir") return "C:\\Users\\barry\\Downloads";
     if (cmd === "pick_folder") return "G:\\1_Presskit";
     if (cmd === "find_ffmpeg") return "F:\\ffmpeg\\bin\\ffmpeg.exe";
+    if (cmd === "get_app_metadata") {
+      return { version: "0.1.1", build: "preview", creator: "Barry Reilly / AckrosGaming" };
+    }
     if (cmd === "download_trailers") {
       const emit = window.__mockEmit;
       for (const t of args.trailers) {
@@ -68,13 +71,29 @@ if (hasTauri) {
 
 // ── Tab navigation ───────────────────────────────────────────────────────
 
+function activateTab(tabName) {
+  const tab = document.querySelector(`.rail-tab[data-tab="${tabName}"]`);
+  const pane = document.getElementById(`pane-${tabName}`);
+  if (!tab || !pane) return;
+
+  document.querySelectorAll(".rail-tab").forEach((item) => item.classList.remove("is-active"));
+  document.querySelectorAll(".pane").forEach((item) => item.classList.remove("is-active"));
+  tab.classList.add("is-active");
+  pane.classList.add("is-active");
+}
+
 document.querySelectorAll(".rail-tab").forEach((tab) => {
-  tab.addEventListener("click", () => {
-    document.querySelectorAll(".rail-tab").forEach((t) => t.classList.remove("is-active"));
-    document.querySelectorAll(".pane").forEach((p) => p.classList.remove("is-active"));
-    tab.classList.add("is-active");
-    document.getElementById(`pane-${tab.dataset.tab}`).classList.add("is-active");
-  });
+  tab.addEventListener("click", () => activateTab(tab.dataset.tab));
+});
+
+document.querySelectorAll("[data-open-tab]").forEach((control) => {
+  control.addEventListener("click", () => activateTab(control.dataset.openTab));
+});
+
+invoke("get_app_metadata").then((metadata) => {
+  document.getElementById("home-version").textContent = metadata.version;
+  document.getElementById("home-build").textContent = metadata.build;
+  document.getElementById("home-creator").textContent = metadata.creator;
 });
 
 // ── Steam tab ────────────────────────────────────────────────────────────
@@ -131,7 +150,20 @@ function pushHistory(entry) {
   history.push({ ts: new Date().toISOString(), ...entry });
   if (history.length > HISTORY_LIMIT) history = history.slice(-HISTORY_LIMIT);
   saveHistory();
+  updateHomeActivity();
 }
+
+function updateHomeActivity() {
+  const activity = document.getElementById("home-activity-count");
+  if (!history.length) {
+    activity.textContent = "No activity yet";
+    return;
+  }
+
+  const last = new Date(history[history.length - 1].ts).toLocaleDateString();
+  activity.textContent = `${history.length} event${history.length === 1 ? "" : "s"} / last ${last}`;
+}
+updateHomeActivity();
 
 function renderHistory() {
   if (!history.length) {
@@ -177,6 +209,7 @@ historyClearBtn.addEventListener("click", () => {
   history = [];
   saveHistory();
   renderHistory();
+  updateHomeActivity();
 });
 
 function extractAppId(raw) {
@@ -191,12 +224,17 @@ async function initOutputDir() {
   outputDir = await invoke("get_default_download_dir");
   steamOutputPath.textContent = outputDir;
   document.getElementById("settings-output-path").textContent = outputDir;
+  document.getElementById("home-output-path").textContent = outputDir;
 }
 initOutputDir();
 
 invoke("find_ffmpeg").then((path) => {
   const el = document.getElementById("settings-ffmpeg-path");
   el.textContent = path || "Not found — install ffmpeg and restart the app";
+  const homeStatus = document.getElementById("home-ffmpeg-status");
+  homeStatus.innerHTML = path
+    ? '<span class="status-dot is-ready"></span>ffmpeg detected'
+    : '<span class="status-dot is-warning"></span>ffmpeg required';
 });
 
 steamChangeDir.addEventListener("click", async () => {
@@ -207,6 +245,7 @@ steamChangeDir.addEventListener("click", async () => {
     outputDir = picked;
     steamOutputPath.textContent = outputDir;
     document.getElementById("settings-output-path").textContent = outputDir;
+    document.getElementById("home-output-path").textContent = outputDir;
   }
 });
 document.getElementById("settings-change-dir").addEventListener("click", () => steamChangeDir.click());

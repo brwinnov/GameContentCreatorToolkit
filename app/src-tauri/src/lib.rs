@@ -44,6 +44,14 @@ pub struct SteamSearchResult {
     pub name: String,
 }
 
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AppMetadata {
+    pub version: &'static str,
+    pub build: &'static str,
+    pub creator: &'static str,
+}
+
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 struct ProgressEvent {
@@ -68,6 +76,17 @@ fn emit_progress_pct(app: &AppHandle, tag: &str, message: impl Into<String>, per
     );
 }
 
+#[tauri::command]
+fn get_app_metadata() -> AppMetadata {
+    AppMetadata {
+        version: env!("CARGO_PKG_VERSION"),
+        build: option_env!("GCC_BUILD_NUMBER")
+            .or(option_env!("GITHUB_RUN_NUMBER"))
+            .unwrap_or("local"),
+        creator: "Barry Reilly / AckrosGaming",
+    }
+}
+
 // ── Steam appdetails lookup ──────────────────────────────────────────────
 // Same endpoint and age-gate cookies as scripts/pwsh/download_steam_trailers.ps1.
 // These cookie values are fixed, publicly-known constants (not credentials) —
@@ -90,7 +109,9 @@ async fn fetch_steam_trailers(app_id: String) -> Result<SteamTrailerResponse, St
         .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)")
         .send()
         .await
-        .map_err(|_| "Could not reach the Steam API. Check your internet connection.".to_string())?;
+        .map_err(|_| {
+            "Could not reach the Steam API. Check your internet connection.".to_string()
+        })?;
 
     let body: serde_json::Value = resp
         .json()
@@ -151,7 +172,9 @@ async fn search_steam_games_by_name(query: String) -> Result<Vec<SteamSearchResu
         .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)")
         .send()
         .await
-        .map_err(|_| "Could not reach the Steam search API. Check your internet connection.".to_string())?;
+        .map_err(|_| {
+            "Could not reach the Steam search API. Check your internet connection.".to_string()
+        })?;
 
     let body: serde_json::Value = resp
         .json()
@@ -165,7 +188,10 @@ async fn search_steam_games_by_name(query: String) -> Result<Vec<SteamSearchResu
 
     let mut results = Vec::new();
     for item in items {
-        let name = item.get("name").and_then(|v| v.as_str()).unwrap_or_default();
+        let name = item
+            .get("name")
+            .and_then(|v| v.as_str())
+            .unwrap_or_default();
         if name.is_empty() {
             continue;
         }
@@ -260,8 +286,11 @@ fn find_ffmpeg() -> Option<String> {
 // before falling back to a PATH lookup.
 
 fn find_ffprobe_path(ffmpeg_path: &str) -> Option<String> {
-    let sibling = Path::new(ffmpeg_path)
-        .with_file_name(if cfg!(windows) { "ffprobe.exe" } else { "ffprobe" });
+    let sibling = Path::new(ffmpeg_path).with_file_name(if cfg!(windows) {
+        "ffprobe.exe"
+    } else {
+        "ffprobe"
+    });
     if sibling.exists() {
         return Some(sibling.display().to_string());
     }
@@ -331,12 +360,7 @@ fn safe_filename(name: &str) -> String {
     let mut out = String::new();
     let mut last_was_sep = false;
     for c in kept.trim().chars() {
-        if c.is_whitespace() {
-            if !last_was_sep {
-                out.push('_');
-                last_was_sep = true;
-            }
-        } else if c == '_' {
+        if c.is_whitespace() || c == '_' {
             if !last_was_sep {
                 out.push('_');
                 last_was_sep = true;
@@ -441,8 +465,8 @@ async fn download_trailers(
                             // Cap at 99 while still decoding — 100% is
                             // reserved for the OK event, once the file is
                             // actually finalized on disk.
-                            let pct = ((us as f64 / 1_000_000.0 / total) * 100.0)
-                                .clamp(0.0, 99.0) as i64;
+                            let pct =
+                                ((us as f64 / 1_000_000.0 / total) * 100.0).clamp(0.0, 99.0) as i64;
                             if pct != last_pct {
                                 last_pct = pct;
                                 emit_progress_pct(&app, "PROGRESS", name.clone(), Some(pct as u8));
@@ -501,10 +525,7 @@ async fn download_trailers(
                 emit_progress(
                     &app,
                     "FAIL",
-                    format!(
-                        "{} — ffmpeg exited with code {}{}",
-                        trailer.name, s, suffix
-                    ),
+                    format!("{} — ffmpeg exited with code {}{}", trailer.name, s, suffix),
                 );
                 failed += 1;
             }
@@ -529,6 +550,7 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .invoke_handler(tauri::generate_handler![
+            get_app_metadata,
             fetch_steam_trailers,
             search_steam_games_by_name,
             find_ffmpeg,

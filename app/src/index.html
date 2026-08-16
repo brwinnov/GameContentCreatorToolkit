@@ -10,8 +10,13 @@
 
 <div class="app">
 
-  <nav class="rail" aria-label="Content sources">
-    <button class="rail-tab is-active" data-tab="steam" aria-label="Steam">
+  <nav class="rail" aria-label="Toolkit navigation">
+    <button class="rail-tab is-active" data-tab="home" aria-label="Home">
+      <span class="rail-icon">H</span>
+      <span class="rail-label">Home</span>
+    </button>
+    <div class="rail-divider" aria-hidden="true"></div>
+    <button class="rail-tab" data-tab="steam" aria-label="Steam">
       <span class="rail-icon">S</span>
       <span class="rail-label">Steam</span>
     </button>
@@ -40,8 +45,94 @@
 
   <main class="content">
 
+    <!-- ── Home ─────────────────────────────────────────────────── -->
+    <section class="pane home-pane is-active" id="pane-home">
+      <div class="home-intro">
+        <div class="home-copy">
+          <p class="home-kicker">ACKROSGAMING / CREATOR UTILITIES</p>
+          <h1>Game Content<br />Creator Toolkit</h1>
+          <p class="home-lede">Collect official trailers and media assets into a clean, creator-ready workspace.</p>
+          <div class="home-meta" aria-label="Application information">
+            <span>Version <strong id="home-version">0.1.1</strong></span>
+            <span>Build <strong id="home-build">local</strong></span>
+            <span>Created by <strong id="home-creator">Barry Reilly / AckrosGaming</strong></span>
+          </div>
+          <div class="home-actions">
+            <button class="btn btn-primary" data-open-tab="steam">Open Steam downloader</button>
+            <button class="btn btn-ghost" data-open-tab="settings">Settings</button>
+          </div>
+        </div>
+        <div class="home-mark" aria-hidden="true">
+          <span>GC</span>
+          <small>TOOLKIT</small>
+        </div>
+      </div>
+
+      <div class="home-dashboard">
+        <section class="home-tools" aria-labelledby="home-tools-title">
+          <div class="home-section-heading">
+            <div>
+              <p class="home-eyebrow">TOOLS</p>
+              <h2 id="home-tools-title">Start a workflow</h2>
+            </div>
+            <span class="home-section-note">1 available / 4 planned</span>
+          </div>
+
+          <button class="home-tool is-ready" data-open-tab="steam">
+            <span class="home-tool-icon">S</span>
+            <span class="home-tool-copy">
+              <strong>Steam trailer downloader</strong>
+              <small>Find a game, choose official trailers, and save local MP4 files.</small>
+            </span>
+            <span class="home-tool-state">READY</span>
+            <span class="home-tool-arrow" aria-hidden="true">&rarr;</span>
+          </button>
+
+          <div class="home-tool is-planned">
+            <span class="home-tool-icon">+</span>
+            <span class="home-tool-copy">
+              <strong>Social media sources</strong>
+              <small>YouTube, TikTok, Instagram, and Facebook via yt-dlp.</small>
+            </span>
+            <span class="home-tool-state">PLANNED</span>
+          </div>
+        </section>
+
+        <aside class="home-overview" aria-labelledby="home-overview-title">
+          <div class="home-section-heading">
+            <div>
+              <p class="home-eyebrow">OVERVIEW</p>
+              <h2 id="home-overview-title">Ready to create</h2>
+            </div>
+          </div>
+
+          <dl class="home-status-list">
+            <div>
+              <dt>Media engine</dt>
+              <dd id="home-ffmpeg-status"><span class="status-dot is-checking"></span>Checking ffmpeg</dd>
+            </div>
+            <div>
+              <dt>Default output</dt>
+              <dd id="home-output-path">Loading...</dd>
+            </div>
+            <div>
+              <dt>Recent activity</dt>
+              <dd id="home-activity-count">No activity yet</dd>
+            </div>
+          </dl>
+
+          <p class="home-tip"><span>TIP</span> Start with a Steam store URL, App ID, or game name. Existing files are skipped safely.</p>
+        </aside>
+      </div>
+
+      <footer class="home-footer">
+        <span>BETA</span>
+        <p>Steam tools are available now. Additional sources are in active planning.</p>
+      </footer>
+    </section>
+
     <!-- ── Steam tab ─────────────────────────────────────────────── -->
-    <section class="pane is-active" id="pane-steam">
+    <section class="pane" id="pane-steam">
       <header class="pane-header">
         <h1>Steam trailer downloader</h1>
         <p class="pane-sub">Paste a Steam store page URL, or just the App ID</p>

@@ -1,161 +1,89 @@
-# How to publish the current release to GitHub
+# How to Cut a Release
 
-This guide explains how to publish the current Windows release for this project so it appears in the GitHub repository's Releases section and shows as the latest release.
+Public releases are built from version tags by GitHub Actions. Do not manually
+attach binaries built from another branch or commit.
 
-## What this release includes
+## Release Types
 
-The current Windows build should include all release formats for the same version:
+- Patch: `0.1.0` → `0.1.1`
+- Minor: `0.1.0` → `0.2.0`
+- Major: `0.1.0` → `1.0.0`
 
-- `ggc-app-0.1.0.exe` — portable standalone app
-- `ggc-app-0.1.0-installer.msi` — Microsoft Installer package
-- `ggc-app-0.1.0-setup.exe` — setup/installer executable
+## Version Sources
 
-These files are expected to be in the release folder:
+Update these files to the same semantic version:
 
-- `release/ggc-app-0.1.0/`
+- `app/package.json`
+- `app/package-lock.json`
+- `app/src-tauri/Cargo.toml`
+- `app/src-tauri/Cargo.lock` (`ggt-app` package entry)
+- `app/src-tauri/tauri.conf.json`
 
----
+Also add the release to `CHANGELOG.md`. The CI release gate rejects a tag when
+its value does not match the npm, lockfile, Cargo, and Tauri versions.
 
-## Prerequisites
+## Local Validation
 
-Before publishing:
+From the repository root:
 
-- You have a GitHub repository already created for this project
-- You are logged in to GitHub with permissions to create releases
-- The code is committed and pushed to the `main` branch
-- The final build artifacts are present locally on disk
-
----
-
-## Step 1: Check that your repo is clean and up to date
-
-From the project folder:
-
-```bash
-git checkout main
-git pull origin main
-git status
+```powershell
+Set-Location app
+npm ci
+node --check src/main.js
+cargo check --manifest-path src-tauri/Cargo.toml
+npx tauri build --no-bundle
 ```
 
-If you see local changes, commit them first before tagging the release.
+For a complete local Windows package check:
 
----
-
-## Step 2: Verify the release artifacts exist
-
-Check that all release files are present:
-
-```bash
-Get-ChildItem .\release\ggc-app-0.1.0
+```powershell
+npx tauri build --bundles msi,nsis
 ```
 
-You should see files like:
+Linux packages are built and validated by the Ubuntu GitHub Actions job.
 
-- `ggc-app-0.1.0.exe`
-- `ggc-app-0.1.0-installer.msi`
-- `ggc-app-0.1.0-setup.exe`
+## Commit and Tag
 
----
+Commit the fully validated release candidate, then create an annotated tag on
+that exact commit:
 
-## Step 3: Create a git tag for the release version
-
-Use a version tag that matches the release number. For this project, use:
-
-```bash
-git tag -a v0.1.0 -m "Release 0.1.0"
+```powershell
+git add --all
+git commit -m "Release 0.1.1"
+git tag -a v0.1.1 -m "Release 0.1.1"
+git push origin main
+git push origin v0.1.1
 ```
 
-Then push the tag to GitHub:
+Never move or reuse an already-published release tag. Increment the patch
+version for a correction.
 
-```bash
-git push origin v0.1.0
-```
+## Automated GitHub Flow
 
-This is the important step that makes GitHub know this is an official release.
+The `Tauri release build` workflow runs separate hosted builds:
 
----
+- Windows: MSI and NSIS setup executable
+- Linux: Debian `.deb` and RPM packages
 
-## Step 4: Create the GitHub release
+The tag build embeds the GitHub run number as the app build number. After both
+jobs pass, `Publish Tauri release artifacts` downloads artifacts from that exact
+workflow run and creates the GitHub Release for the tag.
 
-### Option A: GitHub web UI
+Normal pushes to `main` build validation artifacts but do not publish a release.
 
-1. Open your repository on GitHub
-2. Click the `Releases` tab
-3. Click `Draft a new release`
-4. Choose the tag `v0.1.0`
-5. Set the release title to `0.1.0`
-6. Add a short changelog summary
-7. Upload all three release files
-8. Click `Publish release`
+## Verification
 
-### Option B: GitHub CLI (if installed)
+Before sharing a release, confirm:
 
-```bash
-gh release create v0.1.0 \
-  --title "0.1.0" \
-  --target main \
-  --notes "Game Content Creator Toolkit 0.1.0 release. Includes portable EXE and MSI installer packaging." \
-  --verify-tag
-```
+1. The tag points to the release commit.
+2. Windows and Linux jobs completed successfully.
+3. The publish workflow completed successfully.
+4. The release contains one current MSI, NSIS EXE, `.deb`, and `.rpm`.
+5. Package filenames and displayed application version match the tag.
+6. Release notes accurately describe working and placeholder features.
+7. The repository worktree is clean and synchronized with `origin/main`.
 
-Then attach the files:
+## Auto-Update Future Work
 
-```bash
-gh release upload v0.1.0 \
-  .\release\ggc-app-0.1.0\ggc-app-0.1.0.exe \
-  .\release\ggc-app-0.1.0\ggc-app-0.1.0-installer.msi \
-  .\release\ggc-app-0.1.0\ggc-app-0.1.0-setup.exe
-```
-
----
-
-## Step 5: Make sure it shows as the latest release
-
-GitHub will show a release as `Latest` when:
-
-- the release is published
-- it is not marked as a pre-release
-- it is not marked as a draft
-- it is based on the newest published non-prerelease tag
-
-Avoid marking the release as a pre-release if you want it to appear as the main current version.
-
----
-
-## Important notes
-
-- Pushing code alone does not create a GitHub release.
-- GitHub Releases are attached to tags.
-- The repo’s Releases tab will remain empty until a tag and release are created.
-- Including the EXE and MSI/installer options is recommended so users can choose the right install method.
-
----
-
-## Quick copy-paste version
-
-If you want the shortest working sequence:
-
-```bash
-git checkout main
-git pull origin main
-git tag -a v0.1.0 -m "Release 0.1.0"
-git push origin v0.1.0
-```
-
-Then in GitHub UI:
-
-1. Create release from tag `v0.1.0`
-2. Upload all files from `release/ggc-app-0.1.0/`
-3. Publish
-
----
-
-## Recommended release naming pattern
-
-Use a versioned tag and a versioned folder name together:
-
-- tag: `v0.1.0`
-- folder: `release/ggc-app-0.1.0/`
-- files: `ggc-app-0.1.0.exe`, `ggc-app-0.1.0-installer.msi`, etc.
-
-This keeps the repo, release metadata, and distributable files aligned.
+Signed in-app updating is not enabled yet. Its proposed key management,
+manifest, channel, CI, and runtime design is documented in `repo-update.md`.

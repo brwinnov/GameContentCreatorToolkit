@@ -5,7 +5,33 @@ All notable changes to this project. Format loosely follows
 
 ## [Unreleased]
 
+## [0.1.1] — 2026-08-17
+
 ### Added
+
+- Home dashboard as the default app view, with product identity, real
+  version/build metadata, creator attribution, tool launchers, ffmpeg readiness,
+  output location, and recent activity.
+- `FEATURES.md` as a reviewable feature backlog and `repo-update.md` as the
+  signed application-update architecture plan.
+- Automated Windows and Linux release builds through GitHub Actions.
+
+### Changed
+
+- Release builds now use a committed npm lockfile with `npm ci` and validate
+  that tag, npm, Cargo, and Tauri versions agree before packaging.
+- GitHub run numbers are embedded as the application build number in CI builds.
+
+## [0.1.0-BETA] — 2026-04-15
+
+### Added
+
+- Initial `download_steam_trailers.ps1` (PowerShell 7): queries the Steam
+  `appdetails` API, resolves `dash_h264` DASH manifests, reassembles via
+  `ffmpeg -c copy` into MP4. Supports `-Latest`, `-Oldest`, `-ListOnly`, and
+  interactive All/Latest/pick-one selection.
+- `build_toolkit.ps1` packaging script → `toolkit/` distributable copy.
+- Initial README, usage docs, and development plan.
 - `app/` — Tauri v2 desktop app scaffold. Steam tab fully wired to a Rust
   port of the Steam trailer download logic (appdetails API + ffmpeg DASH→MP4);
   YouTube/TikTok/Instagram tabs are styled placeholders. First compile and
@@ -31,6 +57,7 @@ All notable changes to this project. Format loosely follows
   and click the correct match to continue the trailer fetch flow.
 
 ### Changed
+
 - Consolidated `docs/README.md` and `docs/PLAN.md` (now superseded by root
   `README.md` and `PLAN.md`) to avoid duplicate/drifting copies
 - Updated the distribution plan to focus on Windows desktop builds plus Linux
@@ -50,6 +77,7 @@ All notable changes to this project. Format loosely follows
   hidden. Made that explicit instead of relying on it implicitly.
 
 ### Fixed
+
 - ffmpeg's DASH demuxer occasionally logs a benign "Error when loading first
   fragment of playlist" line on segment retries even though the download
   completes fine (exit code 0, valid output file). Filtered out of
@@ -63,14 +91,4 @@ All notable changes to this project. Format loosely follows
 - `build_toolkit.ps1` was re-zipping whatever was already in `toolkit/`
   without syncing it from `scripts/pwsh/download_steam_trailers.ps1` first —
   the two copies could silently drift despite CLAUDE.md documenting them as
-  always identical. The build script now copies the source in before
-  packaging.
-
-## [0.1.0-BETA] — 2026-04-15
-### Added
-- Initial `download_steam_trailers.ps1` (PowerShell 7): queries the Steam
-  `appdetails` API, resolves `dash_h264` DASH manifests, reassembles via
-  `ffmpeg -c copy` into MP4. Supports `-Latest`, `-Oldest`, `-ListOnly`, and
-  interactive All/Latest/pick-one selection.
-- `build_toolkit.ps1` packaging script → `toolkit/` distributable copy
-- Initial README, usage docs, and development plan
+  always identical. The build script now copies the source before packaging.

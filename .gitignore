@@ -20,7 +20,6 @@ dist/
 release/
 dist/
 app/src-tauri/gen/
-app/package-lock.json
 
 # ── Local editor / AI tool metadata ───────────────────────────────────────
 .claude/

@@ -25,8 +25,8 @@ All notable changes to this project. Format loosely follows
   `DOWNLOADED`/`FAILED`/`SKIPPED`/`INVALID` for download attempts). Persisted
   in `localStorage`, capped at the most recent 200 entries, survives app
   restarts.
-- Windows test release set for 0.0.2: portable EXE + MSI + NSIS installer in
-  `workspace/release/ggc-app-0.0.2` for sharing and quick validation.
+- Windows release build for 0.1.0: portable EXE + MSI + NSIS installer in
+  `workspace/release/ggc-app-0.1.0` for sharing and quick validation.
 - Steam name-based lookup: users can type a game name, see matching results,
   and click the correct match to continue the trailer fetch flow.
 

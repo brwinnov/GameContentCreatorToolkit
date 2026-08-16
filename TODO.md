@@ -8,8 +8,8 @@ Living checklist. Move finished items to CHANGELOG.md, don't just delete them.
       (matching MD5), no reconciliation needed. `initial/` can be archived/
       deleted locally once you've confirmed nothing else in that folder is
       needed.
-- [x] Build and package Windows release test set for 0.0.2: portable EXE +
-      MSI + NSIS install bundle in `workspace/release/ggc-app-0.0.2`.
+- [x] Build and package Windows release set for 0.1.0: portable EXE +
+      MSI + NSIS install bundle in `workspace/release/ggc-app-0.1.0`.
 - [x] Hide ffmpeg/ffprobe console windows on Windows while keeping live in-app
       progress and captured stderr handling; this avoids black cmd popups in a
       desktop release.

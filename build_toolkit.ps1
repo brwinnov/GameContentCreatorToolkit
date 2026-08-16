@@ -1,7 +1,7 @@
 # Build Script for Game Content Creator Toolkit
 # This script bundles the toolkit files into a zip archive for distribution.
 
-$Version = "0.1.0-BETA"
+$Version = "0.1.0"
 $ToolkitFolder = "./toolkit"
 $OutputDir = "./dist"
 $ZipFile = "$OutputDir/GameContentToolkit-$Version.zip"

@@ -14,10 +14,10 @@ The app was working in a test build but had two obvious release issues: Windows 
 - Kept in-app progress reporting and error capture in the desktop UI rather than relying on terminal output.
 - Added a Steam store search command that resolves candidate games by name and lets the user choose the matching app.
 - Updated the UI to show a small match list beneath the Steam input before the trailer fetch runs.
-- Created a versioned test release folder containing the portable EXE and installer copies for 0.0.2.
+- Created a versioned release folder containing the portable EXE and installer copies for 0.1.0.
 - Documented the release/build status in `CHANGELOG.md` and `TODO.md`.
 
 ## Open questions / follow-ups
 - Need a real external smoke test in Windows Sandbox or on a clean Windows 11 machine to validate the installer + app launch path end-to-end.
-- Need to decide whether release naming should remain `ggc-app-0.0.2` or whether we want a more conventional `GameContentCreatorToolkit-0.0.2-win64` pattern.
+- Need to decide whether release naming should remain `ggc-app-0.1.0` or whether we want a more conventional `GameContentCreatorToolkit-0.1.0-win64` pattern.
 - Next likely hardening phase: batch download defaults, metadata sidecars, or screenshot/export helpers.

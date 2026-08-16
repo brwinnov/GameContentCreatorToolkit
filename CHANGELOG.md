@@ -5,6 +5,11 @@ All notable changes to this project. Format loosely follows
 
 ## [Unreleased]
 
+### Changed
+
+- Upgraded and commit-pinned release workflow actions to their Node 24
+  versions, removing GitHub's Node 20 deprecation warning.
+
 ## [0.1.1] — 2026-08-17
 
 ### Added

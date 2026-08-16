@@ -33,6 +33,9 @@ All notable changes to this project. Format loosely follows
 ### Changed
 - Consolidated `docs/README.md` and `docs/PLAN.md` (now superseded by root
   `README.md` and `PLAN.md`) to avoid duplicate/drifting copies
+- Updated the distribution plan to focus on Windows desktop builds plus Linux
+  `.deb` and `.rpm` packages; macOS packaging is intentionally deferred for
+  the current milestone.
 - Steam tab: added a live 0–100% progress bar in the console header, driven
   by real `ffprobe` duration + ffmpeg `-progress` decode time (not a fake
   animation)

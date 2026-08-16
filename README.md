@@ -8,6 +8,10 @@ for use as press-kit source material alongside your own gameplay recording.
 [`PLAN.md`](PLAN.md) for the full roadmap and [`TODO.md`](TODO.md) for the
 active checklist.
 
+**Current release target:** Windows desktop builds plus Linux `.deb` and `.rpm`
+packages. macOS is intentionally deferred for now while we stabilize the first
+productive Windows/Linux release set.
+
 ---
 
 ## What works today: Steam Trailer Downloader
@@ -71,10 +75,27 @@ single MP4 with `-c copy` (no re-encoding, so it's fast and lossless).
 ## What's next
 Full detail in [`PLAN.md`](PLAN.md), short version:
 1. Harden the Steam script (batch mode, screenshots/art, metadata sidecars)
-2. Wrap it in a real cross-platform desktop app (Tauri — Windows/macOS/Linux)
+2. Wrap it in a real desktop app for the current release targets: Tauri on
+   Windows + Linux (`.deb` / `.rpm`) packages
 3. Paste-a-URL UI: detect available media, choose All/Latest/pick-some
 4. Downloads default to the OS Downloads folder, overridable in Settings
 5. Add YouTube, TikTok, Instagram, and Facebook downloader modules (via yt-dlp)
+6. Revisit macOS packaging in a later milestone once the Windows/Linux release
+   path is stabilized
+
+## Release workflow
+The repo includes GitHub Actions workflows that build release artifacts for the
+current supported platforms:
+
+- Windows: MSI and NSIS installer bundles
+- Linux: `.deb` and `.rpm` packages
+
+See:
+- [`.github/workflows/tauri-release.yml`](.github/workflows/tauri-release.yml)
+- [`.github/workflows/tauri-release-publish.yml`](.github/workflows/tauri-release-publish.yml)
+
+The build runs in GitHub-hosted runners, so the Linux packages are produced in an
+Ubuntu environment instead of a local WSL2 setup.
 
 ## Project docs
 - [`PLAN.md`](PLAN.md) — full roadmap

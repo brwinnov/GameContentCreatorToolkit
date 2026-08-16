@@ -1,8 +1,9 @@
 # Game Content Creator Toolkit — desktop app
 
-Cross-platform (Windows/macOS/Linux) wrapper around the Steam trailer
-downloader, with placeholder tabs for YouTube, TikTok, and Instagram
-(Phase 3 — routed through yt-dlp, not yet implemented).
+Windows + Linux desktop wrapper around the Steam trailer downloader, with
+placeholder tabs for YouTube, TikTok, and Instagram (Phase 3 — routed through
+yt-dlp, not yet implemented). macOS packaging is intentionally deferred for the
+current release milestone.
 
 ## Preview the UI right now (no install needed)
 Double-click `src/index.html` to open it in a browser. It runs in a mocked
@@ -38,7 +39,9 @@ standalone script — see the root `README.md`).
 ```powershell
 npm run tauri build
 ```
-Output lands in `src-tauri/target/release/bundle/`.
+Output lands in `src-tauri/target/release/bundle/`. The current release plan is
+Windows installers plus Linux `.deb` and `.rpm` bundles; macOS `.app`/DMG is
+not part of the active roadmap.
 
 ## Icons
 Placeholder icons are included so the project builds out of the box. Once

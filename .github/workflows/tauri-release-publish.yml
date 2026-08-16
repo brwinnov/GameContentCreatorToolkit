@@ -22,6 +22,8 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: release-artifacts
+          run-id: ${{ github.event.workflow_run.id || github.run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           merge-multiple: false
 
       - name: Prepare release directory

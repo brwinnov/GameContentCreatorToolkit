@@ -1,0 +1,6 @@
+# Show the compiled Tauri application language on GitHub's single-language
+# repository card. The embedded webview and legacy scripts remain source files,
+# while repository topics describe the complete technology stack.
+app/src/** linguist-detectable=false
+scripts/** linguist-detectable=false
+toolkit/** linguist-generated=true

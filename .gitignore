@@ -16,15 +16,21 @@ NMS_trailers/
 downloads/
 dist/
 
+# ── Local-only build/release outputs (keep on disk, do not track) ────────
+release/
+dist/
+app/src-tauri/gen/
+app/package-lock.json
+
+# ── Local editor / AI tool metadata ───────────────────────────────────────
+.claude/
+.vscode/
+*.swp
+
 # ── OS junk ─────────────────────────────────────────────────────────────
 .DS_Store
 Thumbs.db
 desktop.ini
-
-# ── Editor ──────────────────────────────────────────────────────────────
-.vscode/*
-!.vscode/extensions.json
-*.swp
 
 # ── Future app build artifacts (Tauri / Node / Rust) ───────────────────
 node_modules/

@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Game Content Creator Toolkit</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<div class="app">
+
+  <nav class="rail" aria-label="Content sources">
+    <button class="rail-tab is-active" data-tab="steam" aria-label="Steam">
+      <span class="rail-icon">S</span>
+      <span class="rail-label">Steam</span>
+    </button>
+    <button class="rail-tab" data-tab="youtube" aria-label="YouTube">
+      <span class="rail-icon">Y</span>
+      <span class="rail-label">YouTube</span>
+    </button>
+    <button class="rail-tab" data-tab="tiktok" aria-label="TikTok">
+      <span class="rail-icon">T</span>
+      <span class="rail-label">TikTok</span>
+    </button>
+    <button class="rail-tab" data-tab="instagram" aria-label="Instagram">
+      <span class="rail-icon">I</span>
+      <span class="rail-label">Instagram</span>
+    </button>
+    <button class="rail-tab" data-tab="facebook" aria-label="Facebook">
+      <span class="rail-icon">F</span>
+      <span class="rail-label">Facebook</span>
+    </button>
+    <div class="rail-spacer"></div>
+    <button class="rail-tab" data-tab="settings" aria-label="Settings">
+      <span class="rail-icon">&#9881;</span>
+      <span class="rail-label">Settings</span>
+    </button>
+  </nav>
+
+  <main class="content">
+
+    <!-- ── Steam tab ─────────────────────────────────────────────── -->
+    <section class="pane is-active" id="pane-steam">
+      <header class="pane-header">
+        <h1>Steam trailer downloader</h1>
+        <p class="pane-sub">Paste a Steam store page URL, or just the App ID</p>
+      </header>
+
+      <div class="input-row">
+        <input type="text" id="steam-input" placeholder="Steam URL, App ID, or game name like No Man's Sky" />
+        <button class="btn btn-accent" id="steam-fetch">Find trailers</button>
+      </div>
+
+      <div class="search-results" id="steam-name-results" hidden></div>
+      <div class="status-line" id="steam-status"></div>
+
+      <div class="trailer-panel" id="steam-results" hidden>
+        <div class="trailer-panel-header">
+          <div class="quick-actions">
+            <button class="chip" id="steam-select-all">All</button>
+            <button class="chip" id="steam-select-latest">Latest only</button>
+            <button class="chip" id="steam-select-none">Clear</button>
+          </div>
+          <span class="trailer-count" id="steam-count"></span>
+        </div>
+        <ul class="trailer-list" id="steam-list"></ul>
+      </div>
+
+      <div class="console" id="steam-console" hidden>
+        <div class="console-header">
+          <span>Console output</span>
+          <div class="console-progress" id="steam-progress-row" hidden>
+            <div class="progress-track"><div class="progress-fill" id="steam-progress-fill"></div></div>
+            <span class="progress-pct" id="steam-progress-pct">0%</span>
+          </div>
+          <button class="console-clear" id="steam-console-clear">Clear</button>
+        </div>
+        <div class="console-body" id="steam-console-body"></div>
+      </div>
+
+      <footer class="pane-footer" id="steam-footer" hidden>
+        <div class="output-dir">
+          <span class="output-dir-label">Save to</span>
+          <span class="output-dir-path" id="steam-output-path">—</span>
+          <button class="link-btn" id="steam-change-dir">Change</button>
+        </div>
+        <div class="footer-actions">
+          <button class="btn btn-ghost" id="steam-history">Show history</button>
+          <button class="btn btn-primary" id="steam-download" disabled>Download selected</button>
+        </div>
+      </footer>
+
+      <div class="modal-overlay" id="history-modal" hidden>
+        <div class="modal-panel">
+          <div class="modal-header">
+            <span>Download history</span>
+            <div class="modal-header-actions">
+              <button class="console-clear" id="history-clear">Clear</button>
+              <button class="modal-close" id="history-close" aria-label="Close">&times;</button>
+            </div>
+          </div>
+          <div class="modal-body" id="history-body"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Placeholder tabs ──────────────────────────────────────── -->
+    <section class="pane" id="pane-youtube">
+      <div class="placeholder">
+        <span class="placeholder-icon">Y</span>
+        <h2>YouTube — coming soon</h2>
+        <p>Paste a video or channel URL and pull down trailers, clips, or full uploads via yt-dlp.</p>
+        <div class="input-row is-disabled">
+          <input type="text" placeholder="https://youtube.com/watch?v=..." disabled />
+          <button class="btn btn-accent" disabled>Find media</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="pane" id="pane-tiktok">
+      <div class="placeholder">
+        <span class="placeholder-icon">T</span>
+        <h2>TikTok — coming soon</h2>
+        <p>Paste a TikTok video or profile URL to pull clips for press-kit use.</p>
+        <div class="input-row is-disabled">
+          <input type="text" placeholder="https://tiktok.com/@studio/video/..." disabled />
+          <button class="btn btn-accent" disabled>Find media</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="pane" id="pane-instagram">
+      <div class="placeholder">
+        <span class="placeholder-icon">I</span>
+        <h2>Instagram — coming soon</h2>
+        <p>Paste a Reel or post URL to pull down developer/publisher-shared media.</p>
+        <div class="input-row is-disabled">
+          <input type="text" placeholder="https://instagram.com/reel/..." disabled />
+          <button class="btn btn-accent" disabled>Find media</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="pane" id="pane-facebook">
+      <div class="placeholder">
+        <span class="placeholder-icon">F</span>
+        <h2>Facebook — coming soon</h2>
+        <p>Paste a video or page post URL to pull down developer/publisher-shared media.</p>
+        <div class="input-row is-disabled">
+          <input type="text" placeholder="https://facebook.com/watch/..." disabled />
+          <button class="btn btn-accent" disabled>Find media</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Settings tab ──────────────────────────────────────────── -->
+    <section class="pane" id="pane-settings">
+      <header class="pane-header">
+        <h1>Settings</h1>
+        <p class="pane-sub">Applies to all downloader tabs</p>
+      </header>
+
+      <div class="settings-row">
+        <div>
+          <div class="settings-label">Default download location</div>
+          <div class="settings-value" id="settings-output-path">—</div>
+        </div>
+        <button class="link-btn" id="settings-change-dir">Change</button>
+      </div>
+
+      <div class="settings-row">
+        <div>
+          <div class="settings-label">ffmpeg</div>
+          <div class="settings-value" id="settings-ffmpeg-path">Detecting…</div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script src="main.js"></script>
+</body>
+</html>

@@ -3,9 +3,18 @@
 Living checklist. Move finished items to CHANGELOG.md, don't just delete them.
 
 ## Now
-- [ ] Paste/upload `initial/download_steam_trailers.ps1` for a line-by-line
-      diff against `scripts/pwsh/download_steam_trailers.ps1` — confirm which
-      is newer and reconcile into one authoritative version
+- [x] Diff `initial/download_steam_trailers.ps1` vs
+      `scripts/pwsh/download_steam_trailers.ps1` — **confirmed identical**
+      (matching MD5), no reconciliation needed. `initial/` can be archived/
+      deleted locally once you've confirmed nothing else in that folder is
+      needed.
+- [x] Build and package Windows release test set for 0.0.2: portable EXE +
+      MSI + NSIS install bundle in `workspace/release/ggc-app-0.0.2`.
+- [x] Hide ffmpeg/ffprobe console windows on Windows while keeping live in-app
+      progress and captured stderr handling; this avoids black cmd popups in a
+      desktop release.
+- [x] Add Steam game-name lookup fallback: users can type a game name and
+      pick a matching app from Steam search results before fetching trailers.
 - [ ] Verify `.gitignore` actually keeps local test output (`trailers/`,
       `images/`, `NMS_trailers/`, `dist/`) and any `.env` out of git
 - [ ] `git add` / commit / push this scaffold from the `workspace/` folder to
@@ -15,10 +24,24 @@ Living checklist. Move finished items to CHANGELOG.md, don't just delete them.
       from it is merged in, to avoid drifting duplicate copies
 
 ## Next
+- [x] `cd app && npm install && npm run tauri dev` — first real compile of the
+      Tauri app scaffold. Compiled clean on the first try, no fixes needed
+      (2026-08-01, after a reboot to pick up newly-installed Rust toolchain).
+- [x] Test the Steam tab end-to-end with a real App ID (2424010 / Parcel
+      Simulator) — fetch, select, download, ffmpeg detection all worked.
+      Along the way, filtered a benign ffmpeg DASH stderr line that was
+      appearing on some downloads despite success (see CHANGELOG), and fixed
+      `build_toolkit.ps1` to actually sync `toolkit/` from source before
+      zipping instead of silently re-packaging a stale copy.
+- [x] Steam tab polish pass (2026-08-01): live 0–100% download progress bar
+      (real `ffprobe`/ffmpeg progress, not fake), a "Show history" panel
+      logging every search + download attempt with status badges (persisted
+      across restarts), and an uppercase pane title. Verified live against
+      App ID 2201940 (Ship Graveyard Simulator 2).
+- [x] Release hardening pass (2026-08-16): hide child-process console windows,
+      create shareable Windows test builds, and add Steam game-name search.
 - [ ] Pick first Phase 1 hardening item (batch mode vs. metadata sidecar vs.
-      screenshot/art pulling) and implement
-- [ ] Scaffold the Tauri app shell (empty window + "hello world" sidecar call
-      to the existing PowerShell script, just to prove the plumbing)
+      screenshot/art pulling) and implement — **next up**
 
 ## Later
 - [ ] Design the common "downloader module" interface so Steam, YouTube,

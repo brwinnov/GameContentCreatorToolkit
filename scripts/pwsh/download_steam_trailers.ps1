@@ -198,7 +198,17 @@ foreach ($movie in $movies) {
     $ffmpegArgs = @("-i", $url, "-c", "copy", $outFile, "-y", "-loglevel", "error", "-stats")
 
     try {
-        & $ffmpeg @ffmpegArgs
+        # ffmpeg's DASH demuxer logs a benign "Error when loading first fragment
+        # of playlist" line on some segment retries even when the download
+        # completes fine (exit code 0, valid output file) — filter just that
+        # known-harmless line so it doesn't read as a failure. Anything else on
+        # stderr still prints, and $LASTEXITCODE still gates success/failure below.
+        & $ffmpeg @ffmpegArgs 2>&1 | ForEach-Object {
+            $line = $_.ToString()
+            if ($line -notmatch 'Error when loading first fragment of playlist') {
+                Write-Host $line
+            }
+        }
         if ($LASTEXITCODE -eq 0) {
             $size = (Get-Item $outFile).Length / 1MB
             Write-Host "[OK]   Saved -> $outFile  ($([math]::Round($size, 1)) MB)" -ForegroundColor Green

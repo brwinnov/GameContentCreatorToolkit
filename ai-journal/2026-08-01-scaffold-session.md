@@ -30,9 +30,10 @@ governance docs in place before building further.
   (the latter is a build output of `build_toolkit.ps1`, not a fork)
 
 ## Open questions / follow-ups
-- The local `initial/` copy of the script has not yet been diffed against the
-  repo version — unresolved whether it has fixes/features not yet in the
-  repo. **Do this before writing any new code on top of the script.**
 - Repo was made public temporarily to allow this session to fetch it (no
   authenticated GitHub access is possible in the AI sandbox). Flip back to
   private if that was the intended default state.
+
+**Update (same day, follow-up):** the `initial/` vs repo script diff was done
+— confirmed byte-identical (matching MD5). No merge was needed; `initial/`
+can be archived/deleted locally.

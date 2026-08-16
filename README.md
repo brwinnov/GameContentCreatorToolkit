@@ -74,7 +74,7 @@ Full detail in [`PLAN.md`](PLAN.md), short version:
 2. Wrap it in a real cross-platform desktop app (Tauri — Windows/macOS/Linux)
 3. Paste-a-URL UI: detect available media, choose All/Latest/pick-some
 4. Downloads default to the OS Downloads folder, overridable in Settings
-5. Add YouTube, TikTok, Facebook, and Instagram downloader modules (via yt-dlp)
+5. Add YouTube, TikTok, Instagram, and Facebook downloader modules (via yt-dlp)
 
 ## Project docs
 - [`PLAN.md`](PLAN.md) — full roadmap

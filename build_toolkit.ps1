@@ -8,6 +8,11 @@ $ZipFile = "$OutputDir/GameContentToolkit-$Version.zip"
 
 Write-Host "📦 Building Game Content Creator Toolkit v$Version..." -ForegroundColor Cyan
 
+# Sync the authoritative script into the toolkit folder before packaging —
+# scripts/pwsh/download_steam_trailers.ps1 is the source of truth; this file
+# is a build output copy and must never be hand-edited (see CLAUDE.md).
+Copy-Item "./scripts/pwsh/download_steam_trailers.ps1" "$ToolkitFolder/Steam-Trailer-Downloader.ps1" -Force
+
 # Create output directory if it doesn't exist
 if (-not (Test-Path $OutputDir)) {
     New-Item -ItemType Directory -Path $OutputDir | Out-Null

@@ -27,12 +27,12 @@ Resolve Studio being the target NLE).
 
 ## Phased roadmap
 
-### Phase 0 — Housekeeping (in progress)
+### Phase 0 — Housekeeping (complete)
 
 - [x] Repo cloned into local `workspace/` as the VS Code project root
 - [x] Folder scaffold: `scripts/`, `ai-journal/`, `logs/`, security/planning docs
 - [x] Diff `initial/download_steam_trailers.ps1` vs repo version — confirmed identical
-- [ ] Confirm `.gitignore` / `.env` hygiene, push scaffold to GitHub
+- [x] Confirm `.gitignore` / `.env` hygiene, push scaffold to GitHub
 
 ### Phase 1 — Steam downloader hardening
 
@@ -62,6 +62,9 @@ history panel (see CHANGELOG) — reasonably feature-complete for an MVP.
 - Paste-a-URL (or search-by-name) entry point → resolve to Steam App ID →
   detect all available media → present the same All / Latest / Pick-one options
   as the current script, now as UI instead of a text menu
+- Add a user-triggered `PASTE` button beside the Steam input (`STM-10`). It
+  reads clipboard text into the existing field using Tauri's text-read-only
+  clipboard permission and handles empty or denied clipboard access clearly.
 - Settings panel: download location (defaults to OS user Downloads folder),
   quality preference, ffmpeg/yt-dlp path overrides
 - Package the current PowerShell logic as the first "downloader module";

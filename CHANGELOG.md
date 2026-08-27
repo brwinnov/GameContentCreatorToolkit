@@ -5,6 +5,13 @@ All notable changes to this project. Format loosely follows
 
 ## [Unreleased]
 
+### Added
+
+- Steam clipboard-paste idea (`STM-10`) and feasibility review for the planned
+  creative-media and PressKit workspace.
+- Model-neutral pre-task and post-task AI handoff workflow under
+  `docs/ai-journal/` for GitHub Copilot, Claude Code, and other assistants.
+
 ### Changed
 
 - Upgraded and commit-pinned release workflow actions to their Node 24

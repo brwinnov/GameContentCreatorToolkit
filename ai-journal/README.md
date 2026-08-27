@@ -1,4 +1,9 @@
-# AI Journal
+# Historical AI Journal
+
+The canonical current handoff workflow is now
+[`../docs/ai-journal/`](../docs/ai-journal/). Read its `PRE-TASK.md` before new
+work and update its `POST-TASK.md` after validation. The dated entries in this
+directory remain historical decision records.
 
 A running log of AI-assisted work sessions on this project — what was asked,
 what was decided, what was built, and why. This is context for future-you

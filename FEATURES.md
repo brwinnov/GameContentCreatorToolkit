@@ -19,7 +19,7 @@ These are the strongest candidates for the next focused milestone:
 
 | ID | Feature | Why now |
 | --- | --- | --- |
-| REL-01 | Clean beta release baseline | Fixes version, provenance, dependency, and public-distribution gaps before adding scope. |
+| STM-10 | Paste Steam URL from clipboard | Small usability improvement that shortens the existing Steam-client-to-app workflow. |
 | DEP-01 | Bundle ffmpeg/ffprobe on Windows | Makes the working Steam feature usable without manual dependency setup. |
 | STM-03 | Screenshots and key art | High creator value using data already available from Steam. |
 | STM-02 | Metadata sidecars | Small, useful foundation for organization and Resolve workflows. |
@@ -45,7 +45,7 @@ starting auto-update, social downloaders, and a major UI rewrite together.
 
 | ID | Feature | Status | Priority | Effort | Dependencies / decision notes |
 | --- | --- | ---: | ---: | ---: | --- |
-| REL-01 | Clean beta release baseline | ready | P0 | M | Align tag and artifact commit; commit npm lockfile; remove duplicate assets; update release notes; mark beta. |
+| REL-01 | Clean beta release baseline | shipped | P0 | M | Completed in `v0.1.1`: tag and artifact provenance aligned, lockfile committed, duplicate assets removed, and release notes updated. |
 | REL-02 | Per-user Windows NSIS install | planned | P1 | S | Change install mode to `currentUser`; validate install/update/uninstall under `%LOCALAPPDATA%`. |
 | REL-03 | Portable Windows ZIP | planned | P1 | M | Package app plus required tools and notices; portable builds receive update notifications but do not overwrite themselves. |
 | REL-04 | Signed application auto-update | planned | P1 | L | Detailed in `repo-update.md`; requires per-user install, signing keys, tag-driven releases, and update UI. |
@@ -65,7 +65,7 @@ starting auto-update, social downloaders, and a major UI rewrite together.
 | DEP-03 | Tool version display and diagnostics | planned | P2 | S | Show app, ffmpeg, ffprobe, and future yt-dlp versions in Settings/About. |
 | DEP-04 | Verified yt-dlp baseline bundle | planned | P1 | M | Implement only when the first social downloader ships; keep shipped copy as fallback. |
 | DEP-05 | Independent verified yt-dlp updater | idea | P2 | L | Official source only, checksum/signature validation, staged activation, health check, rollback. |
-| DEP-06 | Dependency lockfiles and reproducible CI | ready | P0 | S | Commit `package-lock.json`; use `npm ci`; keep Cargo lockfile; pin critical Actions. |
+| DEP-06 | Dependency lockfiles and reproducible CI | shipped | P0 | S | `package-lock.json` and `Cargo.lock` are committed; release CI uses `npm ci`, validates versions, and pins critical Actions. |
 | DEP-07 | Third-party notices screen/file | ready | P0 | S | Required before redistributing ffmpeg or yt-dlp binaries. |
 
 ## Steam Features
@@ -81,6 +81,7 @@ starting auto-update, social downloaders, and a major UI rewrite together.
 | STM-07 | Language and region selection | idea | P3 | M | Make Steam `cc` and `l` configurable. |
 | STM-08 | Steam Workshop asset support | idea | P3 | XL | Separate legal/API and content-type investigation required. |
 | STM-09 | Store description and press facts export | idea | P2 | M | Export supported text metadata for review notes without copying user/private content. |
+| STM-10 | Paste Steam URL from clipboard | ready | P1 | S | Add a `PASTE` button beside the Steam input. Read clipboard text only after the user clicks, place it in the existing URL/App ID/game-name field, and show a clear message for an empty or unreadable clipboard. Use Tauri's clipboard plugin with text-read permission only. |
 
 ## Download Workflow
 
@@ -147,6 +148,23 @@ without first creating a project.
 | PKT-03 | Animated GIF and WebM composition | idea | P3 | XL | Preview and layer animated media with explicit duration, frame-rate, loop, audio, memory, and export rules. Build after the still-image editor is reliable. |
 | PKT-04 | Text layers and system font browser | idea | P2 | L | Add editable text layers using installed fonts, with search, style controls, fallbacks, and missing-font warnings. Projects should reference fonts rather than embed or redistribute them by default. |
 | PKT-05 | Controlled font installation | idea | P3 | L | Install a user-selected font only after previewing its source and license. Prefer per-user installation, require explicit confirmation, reject unsupported files, and never silently elevate privileges. OS behavior differs on Windows and Linux. |
+
+### Feasibility Review (2026-08-28)
+
+| IDs | Verdict | Validation notes |
+| --- | --- | --- |
+| STM-10 | Straightforward | The existing field and parser already accept Steam store URLs. Tauri v2 provides clipboard text reading on Windows and Linux through its official clipboard-manager plugin and a specific `allow-read-text` capability. |
+| MED-01, MED-04 | Straightforward with safeguards | Local file import and alpha-preserving PNG/WebP export are supported by mature image libraries. URL import needs HTTPS-only defaults, response-size and timeout limits, MIME/content validation, and non-destructive output. WebM is video input and must follow the animated pipeline rather than the still-image path. |
+| MED-02 | Doable with an engine decision | A local segmentation model can run through ONNX Runtime or a native inference library. Model license, package size, CPU/GPU performance, offline download behavior, and output quality need a prototype before choosing the engine. |
+| MED-03 | Doable, substantial UI work | Brush/select, mask add/subtract, edge refinement, zoom, undo/redo, and accessible keyboard alternatives are established canvas operations. This is larger than automatic removal and should follow MED-02. |
+| PKT-01 | Straightforward | Tauri can select a folder and Rust can inventory supported files and write a relative-path project manifest. Define symlink, missing-file, duplicate, and external-file behavior. |
+| PKT-02, PKT-04 | Doable with a canvas library | Established canvas libraries support layered images, transforms, clipping, serialization, and editable text. System-font discovery needs a small OS-specific Rust service and fallback handling for projects opened on another machine. |
+| PKT-03 | Doable, highest technical risk | Animated decode, synchronized preview, memory limits, timeline controls, and GIF/WebM encoding are feasible but significantly more complex than still-image composition. Prototype after PKT-02 and use ffmpeg for final encoding where practical. |
+| PKT-05 | Doable, platform-specific and sensitive | Windows and Linux support per-user font installation, but mechanisms and refresh behavior differ. Require a local font file, format validation, license/source preview, explicit confirmation, and no elevation; defer system-wide installation. |
+
+All submitted ideas are technically feasible. The recommended order is
+`STM-10`, `MED-01`, `MED-04`, `PKT-01`, `MED-02`, `MED-03`, `PKT-02`/
+`PKT-04`, then `PKT-03` and `PKT-05` after focused prototypes.
 
 ## Reliability, Security, and Privacy
 

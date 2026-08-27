@@ -18,12 +18,11 @@ Living checklist. Move finished items to CHANGELOG.md, don't just delete them.
       desktop release.
 - [x] Add Steam game-name lookup fallback: users can type a game name and
       pick a matching app from Steam search results before fetching trailers.
-- [ ] Verify `.gitignore` actually keeps local test output (`trailers/`,
+- [x] Verify `.gitignore` actually keeps local test output (`trailers/`,
       `images/`, `NMS_trailers/`, `dist/`) and any `.env` out of git
-- [ ] `git add` / commit / push this scaffold from the `workspace/` folder to
-      GitHub (repo is currently public — flip back to private after pushing
-      if that's the intent)
-- [ ] Delete/archive the old local `initial/` folder once everything useful
+- [x] `git add` / commit / push this scaffold from the `workspace/` folder to
+      GitHub; subsequent Windows/Linux releases confirm the repository is live.
+- [x] Delete/archive the old local `initial/` folder once everything useful
       from it is merged in, to avoid drifting duplicate copies
 
 ## Next
@@ -44,6 +43,11 @@ Living checklist. Move finished items to CHANGELOG.md, don't just delete them.
       App ID 2201940 (Ship Graveyard Simulator 2).
 - [x] Release hardening pass (2026-08-16): hide child-process console windows,
       create shareable Windows test builds, and add Steam game-name search.
+- [ ] Add the Steam `PASTE` button (`STM-10`): on a user click, read text from
+      the clipboard into the existing Steam URL/App ID/game-name field. Request
+      only clipboard text-read permission; handle empty, denied, and unavailable
+      clipboard states; retain Enter and Find trailers behavior; test in the
+      packaged Windows and Linux apps plus browser preview fallback.
 - [ ] Pick first Phase 1 hardening item (batch mode vs. metadata sidecar vs.
       screenshot/art pulling) and implement — **next up**
 

@@ -25,8 +25,18 @@ Script is confirmed stable: the local `initial/` copy and
 - `PLAN.md` — full roadmap
 - `TODO.md` — active checklist
 - `SECURITYAUDIT.md` — data/credential handling notes
-- `ai-journal/` — dated log of AI-assisted work sessions; read the most recent
-  entry for context before starting new work
+- `docs/ai-journal/PRE-TASK.md` — canonical current-state handoff; read before
+  starting repository work
+- `docs/ai-journal/POST-TASK.md` — newest-first completion journal; update after
+  validated repository work
+- `ai-journal/` — older dated AI-session records retained as historical context
+
+## AI task handoff
+
+All AI assistants, regardless of vendor or model, must follow
+`docs/ai-journal/README.md`: read the pre-task context before editing and add a
+concise post-task entry after validation. Refresh the pre-task snapshot whenever
+project status, priorities, constraints, or the recommended next action changes.
 
 ## How to run
 

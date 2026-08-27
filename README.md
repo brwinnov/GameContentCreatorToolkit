@@ -115,5 +115,7 @@ Ubuntu environment instead of a local WSL2 setup.
 - [`SECURITYAUDIT.md`](SECURITYAUDIT.md) — what data/credentials this project touches
 - [`CHANGELOG.md`](CHANGELOG.md) — what's shipped
 - [`repo-update.md`](repo-update.md) — signed application auto-update plan
-- [`CLAUDE.md`](CLAUDE.md) — project context for AI coding assistants
-- [`ai-journal/`](ai-journal/) — running log of AI-assisted work sessions
+- [`AGENTS.md`](AGENTS.md) — model-neutral repository instructions
+- [`docs/ai-journal/`](docs/ai-journal/) — canonical pre-task context and
+   post-task AI handoff journal
+- [`ai-journal/`](ai-journal/) — historical AI-assisted work-session records

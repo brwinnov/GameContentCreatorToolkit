@@ -22,17 +22,21 @@ Steam's API — no browser, no DevTools, no manual URL hunting.
 **Requires:** PowerShell 7+, ffmpeg
 
 ### Setup
+
 1. **ffmpeg** — install via `winget install ffmpeg` / `scoop install ffmpeg` /
    `choco install ffmpeg` / `brew install ffmpeg`, or the script will look in
    a few common install paths automatically.
 2. **Execution policy** (first run only, if PowerShell blocks the script):
+
    ```powershell
    Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
    ```
+
 3. **Find the Steam App ID** — it's the number in the store URL:
    `https://store.steampowered.com/app/3041230/Windrose/` → App ID `3041230`
 
 ### Usage
+
 ```powershell
 .\scripts\pwsh\download_steam_trailers.ps1 -AppId <ID> [options]
 ```
@@ -49,6 +53,7 @@ No `-Latest`/`-Oldest` flag → interactive mode: lists trailers, then prompts
 `[A]` all / `[1]` latest / `[#]` pick one.
 
 Examples:
+
 ```powershell
 # See what's available first
 .\scripts\pwsh\download_steam_trailers.ps1 -AppId 275850 -ListOnly
@@ -64,6 +69,7 @@ Already-downloaded files are skipped automatically — safe to re-run after an
 interruption.
 
 ### How it works (short version)
+
 Steam no longer serves direct `.mp4`/`.webm` trailer files — everything's a
 DASH stream now. The script queries the public `appdetails` API (with
 age-gate cookies so 18+ titles work without a Steam login), gets each
@@ -73,7 +79,9 @@ single MP4 with `-c copy` (no re-encoding, so it's fast and lossless).
 ---
 
 ## What's next
+
 Full detail in [`PLAN.md`](PLAN.md), short version:
+
 1. Harden the Steam script (batch mode, screenshots/art, metadata sidecars)
 2. Wrap it in a real desktop app for the current release targets: Tauri on
    Windows + Linux (`.deb` / `.rpm`) packages
@@ -84,6 +92,7 @@ Full detail in [`PLAN.md`](PLAN.md), short version:
    path is stabilized
 
 ## Release workflow
+
 The repo includes GitHub Actions workflows that build release artifacts for the
 current supported platforms:
 
@@ -91,6 +100,7 @@ current supported platforms:
 - Linux: `.deb` and `.rpm` packages
 
 See:
+
 - [`.github/workflows/tauri-release.yml`](.github/workflows/tauri-release.yml)
 - [`.github/workflows/tauri-release-publish.yml`](.github/workflows/tauri-release-publish.yml)
 
@@ -98,6 +108,7 @@ The build runs in GitHub-hosted runners, so the Linux packages are produced in a
 Ubuntu environment instead of a local WSL2 setup.
 
 ## Project docs
+
 - [`PLAN.md`](PLAN.md) — full roadmap
 - [`FEATURES.md`](FEATURES.md) — reviewable feature backlog and next-step ideas
 - [`TODO.md`](TODO.md) — active checklist

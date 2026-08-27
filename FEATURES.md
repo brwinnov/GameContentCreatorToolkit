@@ -18,7 +18,7 @@ turning `TODO.md` into a long-term wishlist.
 These are the strongest candidates for the next focused milestone:
 
 | ID | Feature | Why now |
-|---|---|---|
+| --- | --- | --- |
 | REL-01 | Clean beta release baseline | Fixes version, provenance, dependency, and public-distribution gaps before adding scope. |
 | DEP-01 | Bundle ffmpeg/ffprobe on Windows | Makes the working Steam feature usable without manual dependency setup. |
 | STM-03 | Screenshots and key art | High creator value using data already available from Steam. |
@@ -31,7 +31,7 @@ starting auto-update, social downloaders, and a major UI rewrite together.
 ## Shipped Foundation
 
 | ID | Feature | Status | Notes |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | STM-00 | Steam trailer discovery by App ID or URL | shipped | Uses Steam `appdetails`; handles age-gated titles. |
 | STM-00A | Steam game-name search | shipped | User selects the correct Steam match. |
 | STM-00B | Trailer selection and MP4 download | shipped | ffmpeg remuxes DASH without re-encoding. |
@@ -44,7 +44,7 @@ starting auto-update, social downloaders, and a major UI rewrite together.
 ## Release and Distribution
 
 | ID | Feature | Status | Priority | Effort | Dependencies / decision notes |
-|---|---|---:|---:|---:|---|
+| --- | --- | ---: | ---: | ---: | --- |
 | REL-01 | Clean beta release baseline | ready | P0 | M | Align tag and artifact commit; commit npm lockfile; remove duplicate assets; update release notes; mark beta. |
 | REL-02 | Per-user Windows NSIS install | planned | P1 | S | Change install mode to `currentUser`; validate install/update/uninstall under `%LOCALAPPDATA%`. |
 | REL-03 | Portable Windows ZIP | planned | P1 | M | Package app plus required tools and notices; portable builds receive update notifications but do not overwrite themselves. |
@@ -59,7 +59,7 @@ starting auto-update, social downloaders, and a major UI rewrite together.
 ## Dependencies and Tooling
 
 | ID | Feature | Status | Priority | Effort | Dependencies / decision notes |
-|---|---|---:|---:|---:|---|
+| --- | --- | ---: | ---: | ---: | --- |
 | DEP-01 | Bundle ffmpeg and ffprobe on Windows | ready | P1 | M | Pin a redistributable build; verify SHA-256 in CI; include exact license/build notices. |
 | DEP-02 | Detect and explain missing Linux ffmpeg | planned | P1 | S | Show distro-appropriate commands and retry detection; do not silently install system packages. |
 | DEP-03 | Tool version display and diagnostics | planned | P2 | S | Show app, ffmpeg, ffprobe, and future yt-dlp versions in Settings/About. |
@@ -71,7 +71,7 @@ starting auto-update, social downloaders, and a major UI rewrite together.
 ## Steam Features
 
 | ID | Feature | Status | Priority | Effort | Dependencies / decision notes |
-|---|---|---:|---:|---:|---|
+| --- | --- | ---: | ---: | ---: | --- |
 | STM-01 | Trailer quality selection | planned | P2 | M | Parse DASH variants and expose quality preferences. |
 | STM-02 | JSON metadata sidecar | ready | P1 | S | Include game/app ID, trailer name, source URL, fetch time, dimensions, duration, and file hash. |
 | STM-03 | Screenshot and key-art downloader | ready | P1 | M | Use screenshots, header, capsule, background, and logo data already available from Steam. |
@@ -85,7 +85,7 @@ starting auto-update, social downloaders, and a major UI rewrite together.
 ## Download Workflow
 
 | ID | Feature | Status | Priority | Effort | Dependencies / decision notes |
-|---|---|---:|---:|---:|---|
+| --- | --- | ---: | ---: | ---: | --- |
 | APP-01 | Common downloader-module interface | planned | P1 | L | Normalize source detection, item metadata, selection, progress, cancellation, and results. |
 | APP-02 | Persistent settings | planned | P1 | M | Download folder, quality, naming, tool paths, channel, and update preferences. |
 | APP-03 | Download queue and batch mode | ready | P1 | L | Add queue states, concurrency limits, pause/cancel/retry, and session recovery. |
@@ -107,7 +107,7 @@ custom page scrapers. Authentication bypasses and DRM circumvention are out of
 scope.
 
 | ID | Feature | Status | Priority | Effort | Dependencies / decision notes |
-|---|---|---:|---:|---:|---|
+| --- | --- | ---: | ---: | ---: | --- |
 | SRC-01 | YouTube downloader | planned | P1 | L | First yt-dlp module; quality/format selection, metadata, subtitles, playlists policy. |
 | SRC-02 | TikTok downloader | planned | P2 | M | Public URLs only initially; test frequent upstream changes. |
 | SRC-03 | Instagram downloader | planned | P2 | L | Public content initially; authentication and cookies need a separate security design. |
@@ -119,7 +119,7 @@ scope.
 ## Creator Workflow
 
 | ID | Feature | Status | Priority | Effort | Dependencies / decision notes |
-|---|---|---:|---:|---:|---|
+| --- | --- | ---: | ---: | ---: | --- |
 | CRT-01 | Contact sheet generation | idea | P1 | M | Create timestamped visual sheets for quickly reviewing trailers/screenshots. |
 | CRT-02 | Proxy and thumbnail generation | planned | P2 | L | Presets optimized for fast preview and Resolve import. |
 | CRT-03 | DaVinci Resolve bin export | idea | P2 | L | Start with folder/bin metadata before attempting timeline generation. |
@@ -129,10 +129,29 @@ scope.
 | CRT-07 | Asset manifest export | idea | P1 | M | Machine-readable inventory with relative paths, metadata, and hashes. |
 | CRT-08 | Thumbnail composition workspace | idea | P3 | XL | Crop, logo placement, safe areas, and export presets; potentially a separate module. |
 
+## Creative Media and PressKit
+
+This proposal covers importing local or remote media, removing backgrounds,
+and assembling reusable press-kit graphics. Keep the background-removal tools
+useful outside the PressKit editor so creators can process a single asset
+without first creating a project.
+
+| ID | Feature | Status | Priority | Effort | Dependencies / decision notes |
+| --- | --- | ---: | ---: | ---: | --- |
+| MED-01 | Local file and URL media import | idea | P2 | M | Accept local uploads or URLs for JPEG, PNG, and WebM initially. Remote imports need scheme allowlisting, redirects and size limits, timeouts, content-type verification, and clear source attribution. |
+| MED-02 | Automatic background removal | idea | P2 | L | Remove the complete background from an image using a replaceable local or hosted segmentation engine. Decide model licensing, download size, offline behavior, supported hardware, and privacy before promotion to `ready`. |
+| MED-03 | Manual mask and selection refinement | idea | P2 | XL | Let users select only part of an asset, add/subtract from the mask, refine edges, preview transparency, and undo changes. Depends on MED-02 and an accessible canvas interaction model. |
+| MED-04 | Transparent asset export | idea | P2 | M | Export processed still images as transparent PNG or WebP without overwriting the source. Preserve useful dimensions and metadata selectively; validate alpha handling across target applications. |
+| PKT-01 | PressKit folder and project import | idea | P2 | M | Point the app at a media/assets folder, inventory supported files, preserve relative paths, and save a portable project manifest. Define missing-file and duplicate behavior. |
+| PKT-02 | Layered PressKit canvas editor | idea | P2 | XL | Compose JPEG, PNG, and animated GIF layers with ordering, positioning, scaling, cropping, opacity, snapping, undo/redo, and reusable output-size presets. Depends on a deliberate canvas/rendering-engine choice. |
+| PKT-03 | Animated GIF and WebM composition | idea | P3 | XL | Preview and layer animated media with explicit duration, frame-rate, loop, audio, memory, and export rules. Build after the still-image editor is reliable. |
+| PKT-04 | Text layers and system font browser | idea | P2 | L | Add editable text layers using installed fonts, with search, style controls, fallbacks, and missing-font warnings. Projects should reference fonts rather than embed or redistribute them by default. |
+| PKT-05 | Controlled font installation | idea | P3 | L | Install a user-selected font only after previewing its source and license. Prefer per-user installation, require explicit confirmation, reject unsupported files, and never silently elevate privileges. OS behavior differs on Windows and Linux. |
+
 ## Reliability, Security, and Privacy
 
 | ID | Feature | Status | Priority | Effort | Dependencies / decision notes |
-|---|---|---:|---:|---:|---|
+| --- | --- | ---: | ---: | ---: | --- |
 | QLT-01 | Rust unit tests for pure logic | ready | P0 | M | URL/App ID parsing, filename safety, selection, response mapping, and version logic. |
 | QLT-02 | Frontend interaction tests | planned | P1 | M | Search states, selection, history, progress, errors, and settings. |
 | QLT-03 | Packaged-app smoke tests | planned | P1 | L | Clean Windows and Linux VMs; launch, fetch, download, and uninstall. |
@@ -147,7 +166,7 @@ scope.
 ## Deliberately Deferred or Out of Scope
 
 | ID | Feature | Status | Reason |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | OUT-01 | macOS release | deferred | Focus remains Windows and Linux until those paths are stable. |
 | OUT-02 | Built-in telemetry | deferred | No analytics unless explicitly designed as opt-in and privacy-preserving. |
 | OUT-03 | DRM bypass | rejected | Not part of the product. |

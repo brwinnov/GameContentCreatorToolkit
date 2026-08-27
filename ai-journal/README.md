@@ -6,12 +6,15 @@ what was decided, what was built, and why. This is context for future-you
 pick up the thread without re-deriving decisions from scratch.
 
 ## Format
+
 One file per session (or per meaningful chunk of work), named:
-```
+
+```text
 YYYY-MM-DD-short-slug.md
 ```
 
 Each entry should briefly cover:
+
 - **Context**: what prompted the session
 - **Decisions made**: especially anything that forecloses other options
   (e.g. "chose Tauri over Electron because...")

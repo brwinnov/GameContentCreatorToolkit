@@ -1,12 +1,14 @@
 # PLAN — Game Content Creator Toolkit
 
 ## What this is
+
 A toolkit for game-review content creators to pull down official media assets
 (trailers, screenshots, art) from a game's store/social pages, for use as
 press-kit source material alongside your own raw gameplay recording (DaVinci
 Resolve Studio being the target NLE).
 
 ## Current state (as of 2026-08-16)
+
 - **Working**: `scripts/pwsh/download_steam_trailers.ps1` — PowerShell 7 script.
   Given a Steam App ID, queries the Steam `appdetails` API directly (not HTML
   scraping), pulls each trailer's `dash_h264` DASH manifest, and reassembles it
@@ -26,12 +28,14 @@ Resolve Studio being the target NLE).
 ## Phased roadmap
 
 ### Phase 0 — Housekeeping (in progress)
+
 - [x] Repo cloned into local `workspace/` as the VS Code project root
 - [x] Folder scaffold: `scripts/`, `ai-journal/`, `logs/`, security/planning docs
 - [x] Diff `initial/download_steam_trailers.ps1` vs repo version — confirmed identical
 - [ ] Confirm `.gitignore` / `.env` hygiene, push scaffold to GitHub
 
 ### Phase 1 — Steam downloader hardening
+
 - Batch mode: multiple App IDs in one run (CSV or comma-separated list)
 - Quality selection from the DASH manifest (currently always takes the default)
 - JSON sidecar metadata per trailer (name, publish context, source URL)
@@ -40,6 +44,7 @@ Resolve Studio being the target NLE).
   (already available in the API response, currently unused)
 
 ### Phase 2 — Desktop app (Tauri) — IN PROGRESS
+
 Wrap the working download logic in a real desktop UI for the current release
 plan: Windows plus Linux `.deb` and `.rpm` packages. macOS is deferred until a
 later milestone after the Windows/Linux packaging path is stable.
@@ -48,6 +53,7 @@ wired and verified end-to-end against real App IDs (2424010, 2201940);
 YouTube/TikTok/Instagram remain UI placeholders. Steam tab now also has a
 live download progress bar and a persisted per-session download/search
 history panel (see CHANGELOG) — reasonably feature-complete for an MVP.
+
 - **Stack decision: Tauri** (Rust shell + web-tech UI). Rationale: strong
   native installer support for Windows and Linux package formats, small
   binaries, and Tauri's "sidecar" feature is a direct fit for bundling/calling
@@ -64,14 +70,17 @@ history panel (see CHANGELOG) — reasonably feature-complete for an MVP.
   milestone; revisit after Windows/Linux packaging is stable
 
 ### Phase 3 — Additional downloader modules
+
 Route these through **yt-dlp** as the underlying engine (already handles all
 four platforms robustly) rather than hand-rolling scrapers per platform:
+
 - YouTube
 - TikTok
 - Instagram
 - Facebook
 
 ### Phase 4 — Content-creator quality-of-life features
+
 - Auto-organize downloads into `Downloads/{GameName}/{Trailers,Screenshots,Art}`
 - Proxy/thumbnail generation for quick scrubbing before importing to Resolve
 - Duplicate/already-downloaded detection across runs
@@ -80,7 +89,31 @@ four platforms robustly) rather than hand-rolling scrapers per platform:
 - yt-dlp self-update button (social platforms change constantly; stale yt-dlp
   breaks silently)
 
-### Phase 5 — Ecosystem / polish (lower priority, later)
+### Phase 5 — Creative media and PressKit workspace (future)
+
+Build this incrementally so useful still-image processing ships before the
+full editor. Detailed feature records and decision notes live in `FEATURES.md`.
+
+1. Import JPEG, PNG, or WebM assets from a local file or URL (`MED-01`).
+2. Remove an entire background automatically, then add selection and mask
+  refinement for partial removal (`MED-02`, `MED-03`).
+3. Export non-destructively to a format with transparency, initially PNG or
+  WebP (`MED-04`).
+4. Point PressKit Maker at a media/assets folder and create a portable project
+  manifest (`PKT-01`).
+5. Add a layered canvas for JPEG, PNG, and animated GIF assets, then expand to
+  animated GIF/WebM composition after still-image editing is stable
+  (`PKT-02`, `PKT-03`).
+6. Add text layers backed by installed system fonts and missing-font handling
+  (`PKT-04`). Treat per-user font installation as a separate, confirmed,
+  license-aware OS integration (`PKT-05`).
+
+Before implementation, choose the segmentation and canvas/rendering engines,
+define local-versus-hosted processing and privacy behavior, and test memory and
+export limits on both Windows and Linux.
+
+### Phase 6 — Ecosystem / polish (lower priority, later)
+
 - Pester tests for the PowerShell logic; CI on Windows/Linux/macOS
 - Steam Workshop asset support
 - Local caching of API responses (TTL-based)
@@ -90,6 +123,7 @@ four platforms robustly) rather than hand-rolling scrapers per platform:
   a real Rust-side log file if cross-device/exportable history is ever needed.
 
 ## Explicitly deferred / not doing (for now)
+
 - No bundling of ffmpeg/yt-dlp binaries in the repo (size + licensing) — the
   app should detect or prompt to install them instead
 - **macOS release packaging is deferred** for this milestone; no `.app`/DMG

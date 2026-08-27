@@ -1,6 +1,7 @@
 # 2026-08-01 — Repo scaffold + roadmap session
 
 ## Context
+
 Project had a working PowerShell 7 Steam-trailer downloader in the
 `brwinnov/GameContentCreatorToolkit` GitHub repo, plus a possibly-newer local
 copy in an `initial/` folder that had never been reconciled with the repo.
@@ -9,6 +10,7 @@ as the new VS Code project root synced to the repo, and put real planning/
 governance docs in place before building further.
 
 ## Decisions made
+
 - **App stack: Tauri** (Rust shell + web-tech UI) for the eventual
   cross-platform desktop app, chosen over Electron and a Python/Qt app mainly
   for native installer size and the built-in "sidecar" mechanism for calling
@@ -22,6 +24,7 @@ governance docs in place before building further.
   automatically).
 
 ## What changed
+
 - Added root-level `PLAN.md`, `TODO.md`, `SECURITYAUDIT.md`, `CHANGELOG.md`
 - Added `ai-journal/` (this folder) and `logs/` (gitignored, `.gitkeep`d)
 - Added `.gitignore` and `.env.example` (project had neither before)
@@ -30,6 +33,7 @@ governance docs in place before building further.
   (the latter is a build output of `build_toolkit.ps1`, not a fork)
 
 ## Open questions / follow-ups
+
 - Repo was made public temporarily to allow this session to fetch it (no
   authenticated GitHub access is possible in the AI sandbox). Flip back to
   private if that was the intended default state.

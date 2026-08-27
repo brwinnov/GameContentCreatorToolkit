@@ -1,6 +1,7 @@
 # 2026-08-01 — Desktop app scaffold (Tauri v2)
 
 ## Context
+
 Repo scaffold + roadmap were already in place (see the earlier journal entry
 today). Local `initial/` script confirmed identical to the repo version, no
 merge needed. Moved on to actually building the app: real UI with a Steam
@@ -8,6 +9,7 @@ tab (wired to working logic) plus placeholder tabs for YouTube, TikTok, and
 Instagram.
 
 ## Decisions made
+
 - **Design direction**: dark, monospace-leaning UI deliberately modeled on
   the user's own PowerShell terminal output (cyan/green/amber/red status
   colors, `[DOWN]`/`[OK]`/`[SKIP]`/`[FAIL]` console lines) rather than a
@@ -28,6 +30,7 @@ Instagram.
   not have compiled.
 
 ## What changed
+
 - Added `app/` — full Tauri v2 project scaffold (`src/` frontend: plain
   HTML/CSS/JS, no bundler; `src-tauri/` Rust backend)
 - Frontend also works standalone in a browser (double-click `src/index.html`)
@@ -37,6 +40,7 @@ Instagram.
   generated — needs `tauri icon` run against a real logo later
 
 ## Open questions / follow-ups
+
 - **The Rust code has not been compiled.** No Rust toolchain was available
   in the session that wrote it — this is unverified beyond matching current
   Tauri v2 documentation. First real next step is `npm install && npm run

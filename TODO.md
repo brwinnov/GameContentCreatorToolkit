@@ -3,6 +3,7 @@
 Living checklist. Move finished items to CHANGELOG.md, don't just delete them.
 
 ## Now
+
 - [x] Diff `initial/download_steam_trailers.ps1` vs
       `scripts/pwsh/download_steam_trailers.ps1` — **confirmed identical**
       (matching MD5), no reconciliation needed. `initial/` can be archived/
@@ -26,6 +27,7 @@ Living checklist. Move finished items to CHANGELOG.md, don't just delete them.
       from it is merged in, to avoid drifting duplicate copies
 
 ## Next
+
 - [x] `cd app && npm install && npm run tauri dev` — first real compile of the
       Tauri app scaffold. Compiled clean on the first try, no fixes needed
       (2026-08-01, after a reboot to pick up newly-installed Rust toolchain).
@@ -46,12 +48,14 @@ Living checklist. Move finished items to CHANGELOG.md, don't just delete them.
       screenshot/art pulling) and implement — **next up**
 
 ## Later
+
 - [ ] Design the common "downloader module" interface so Steam, YouTube,
       TikTok, Facebook, and Instagram all plug into the same UI shape
 - [ ] Settings screen: download folder override, quality prefs
 - [ ] yt-dlp integration for the social platforms (Phase 3)
 
 ## Someday
+
 - [ ] Pester tests + CI
 - [ ] Steam Workshop support
 - [ ] Resolve bin/timeline export

@@ -23,6 +23,7 @@ app/src-tauri/gen/
 
 # ── Local editor / AI tool metadata ───────────────────────────────────────
 .claude/
+.firecrawl/
 .vscode/
 *.swp
 

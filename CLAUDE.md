@@ -5,7 +5,7 @@
 Tauri v2 desktop toolkit for game-review content creators. Its working Steam
 module downloads official trailers as local MP4 files through Steam's API,
 without browser DevTools or manual URL hunting. A PowerShell 7 implementation
-is retained as the authoritative legacy script; see `PLAN.md`.
+is retained as the authoritative legacy script; see `docs/PLAN.md`.
 
 ## Status
 
@@ -24,9 +24,9 @@ are implemented. The legacy script is confirmed stable: the local `initial/` cop
 - `scripts/bash/download_steam_trailers.sh` — bash version (deprecated, has
   Windows PATH quirks — see "Known gotcha" below)
 - `README.md` — usage documentation (landing page)
-- `PLAN.md` — full roadmap
-- `TODO.md` — active checklist
-- `SECURITYAUDIT.md` — data/credential handling notes
+- `docs/PLAN.md` — full roadmap
+- `docs/TODO.md` — active checklist
+- `docs/SECURITYAUDIT.md` — data/credential handling notes
 - `docs/ai-journal/PRE-TASK.md` — canonical current-state handoff; read before
   starting repository work
 - `docs/ai-journal/POST-TASK.md` — newest-first completion journal; update after

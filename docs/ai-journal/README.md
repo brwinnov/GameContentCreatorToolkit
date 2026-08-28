@@ -4,8 +4,8 @@ This directory is the model-neutral handoff point for GitHub Copilot, Claude
 Code, Claude CLI, and other AI coding assistants or models. Start a replacement
 session by asking it to read this file, [`PRE-TASK.md`](PRE-TASK.md), and the
 repository root [`AGENTS.md`](../../AGENTS.md). It complements Git history and
-the older dated records in [`../../ai-journal/`](../../ai-journal/); it is not a
-chat transcript archive.
+the older dated records in [`archive/`](archive/); it is not a chat transcript
+archive.
 
 ## Required Workflow
 

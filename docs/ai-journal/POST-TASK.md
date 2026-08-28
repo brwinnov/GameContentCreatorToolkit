@@ -4,6 +4,164 @@ Add completed tasks directly below this introduction, newest first. Keep each
 entry concise enough for another AI assistant to understand what changed and
 what remains without reading a chat transcript.
 
+## 2026-08-28 - Documentation Layout
+
+### Request
+
+Move nonstandard root Markdown into `docs/`, retain standard GitHub repository
+files at root, and identify worthwhile missing community files.
+
+### Decisions
+
+- Keep `README.md`, `CHANGELOG.md`, tool discovery files, and `LICENSE` at root.
+- Keep package and configuration documentation beside the files it explains.
+- Add useful security and contribution guidance rather than empty placeholders.
+
+### Changed
+
+- Moved project plans, policies, audits, release guidance, and download
+  documentation into `docs/` and repaired all active references.
+- Archived dated AI records under `docs/ai-journal/archive/`.
+- Added root `SECURITY.md` and `CONTRIBUTING.md` community files.
+
+### Validation
+
+- All 26 repository-owned Markdown files passed `markdownlint-cli2`.
+- Local-link validation passed all 26 Markdown files after relocation.
+- `git diff --check` passed with repository line endings governed by
+  `.gitattributes`.
+
+### Remaining Work
+
+- Consider `CODE_OF_CONDUCT.md` and `SUPPORT.md` when external community demand
+  makes their policies useful; do not add empty placeholders.
+
+## 2026-08-28 - SignPath Repository Preparation
+
+### Request
+
+Create all missing repository artifacts needed to pursue SignPath Foundation's
+free open-source code-signing method.
+
+### Decisions
+
+- Submit and deep-sign the Windows MSI through SignPath from the same
+  GitHub-hosted job that builds it, with manual approval and fail-closed signer
+  and timestamp verification.
+- Keep SignPath dashboard configuration as reviewed repository templates because
+  SignPath does not import artifact configurations directly from source control.
+- Prepare RPM signing separately; SignPath documents it for Open Source Code
+  Signing, while embedded DEB signing is Advanced-only.
+- Never expose the unsigned SignPath input artifact to the release publisher.
+
+### Changed
+
+- Added application answers, onboarding instructions, and schema-valid MSI/RPM
+  artifact configuration templates under `.signpath/`.
+- Added `DOWNLOADS.md` with the required SignPath notice, verification, system
+  changes, and uninstallation guidance, plus CODEOWNERS for signing surfaces.
+- Added tagged MSI submission through SignPath's SHA-pinned GitHub action,
+  manual-approval wait, signer/timestamp verification, and signed-only upload.
+- Restricted the publisher to named signed Windows/Linux artifacts and added a
+  generated, self-verified `SHA256SUMS` release asset.
+- Updated signing, release, audit, planning, and handoff documentation and
+  ignored local `.firecrawl/` research output.
+
+### Validation
+
+- Both artifact configuration templates passed SignPath's live v1 XSD.
+- All 24 tracked and newly added Markdown files passed `markdownlint-cli2`.
+- VS Code workflow validation found no defects; it reports only the expected
+  absent `SIGNPATH_API_TOKEN` secret and `SIGNPATH_ORGANIZATION_ID` variable.
+- `actionlint` 1.7.12 passed both release workflows with no findings.
+- The release checksum commands passed with representative MSI, DEB, and RPM
+  filenames; a credential-pattern scan found no committed secrets.
+
+### Remaining Work
+
+- Add credible public reputation evidence and the SignPath account email to the
+  application, then submit it and await Foundation acceptance.
+- Complete the SignPath dashboard, GitHub App, MFA, repository secret/variable,
+  and manual approver setup documented in `.signpath/README.md`.
+- Run a test tag and verify the first signed MSI end to end before public release.
+- Activate RPM signing if SignPath supplies a GPG policy; choose a separate
+  supported trust mechanism for DEB and sign the checksum manifest.
+
+## 2026-08-28 - MIT License and SignPath Policy
+
+### Request
+
+Drop the Azure signing direction and add the missing license needed to pursue
+free SignPath Foundation signing.
+
+### Decisions
+
+- License project-owned source under the OSI-approved MIT License, with Barry
+  Reilly as the copyright holder.
+- Prepare the repository for SignPath Foundation rather than claim acceptance
+  or signed releases before its application and workflow setup are complete.
+- Publish SignPath's required roles, manual approval rule, and privacy statement
+  alongside the license and package metadata.
+
+### Changed
+
+- Added `LICENSE`, `CODE_SIGNING_POLICY.md`, and `PRIVACY.md`.
+- Declared `MIT` in npm, npm lockfile, and Cargo package metadata.
+- Linked the policies from `README.md`, completed `SEC-01` and `SEC-04` in
+  `FEATURES.md`, and updated the `SEC-002` remediation direction.
+- Refreshed `PRE-TASK.md` with the licensing and signing decision.
+
+### Validation
+
+- All 21 tracked and newly added Markdown files passed `markdownlint-cli2`.
+- npm and Cargo metadata both resolved the project license as `MIT`.
+
+### Remaining Work
+
+- Apply to SignPath Foundation and await project acceptance.
+- Configure SignPath artifact metadata, GitHub integration, manual release
+  approval, and post-signing verification before representing releases as
+  signed.
+- Complete the remaining `SEC-002` Linux signatures and checksum-manifest work.
+
+## 2026-08-28 - Source Security Audit
+
+### Request
+
+Run a security audit and append findings and remediation tasks to the security
+audit file.
+
+### Decisions
+
+- Treat the deprecated Bash script's App ID interpolation into `node -e` as a
+  high-priority code-injection issue while the script remains shipped.
+- Treat unsigned public installers as high severity before broad distribution.
+- Record dependency warnings separately from known vulnerabilities: npm and
+  RustSec found no known vulnerabilities in the locked dependency graphs.
+
+### Changed
+
+- Appended a dated, severity-ranked report to `SECURITYAUDIT.md` covering the
+  Tauri boundary, rendering, network/process limits, managed ffmpeg, local
+  persistence, legacy scripts, dependency locks, and release workflows.
+- Added actionable checklists for all 9 findings and corrected the stale
+  description of Tauri auto-update as a future GUI concern.
+- Promoted security remediation ahead of feature work in `PRE-TASK.md`.
+
+### Validation
+
+- `npm audit --package-lock-only --audit-level=low`: 0 vulnerabilities.
+- `cargo audit`: 0 known vulnerabilities and 18 warnings.
+- Current tracked-file and Git-history scans found no common credential or
+  private-key patterns and no unexpectedly tracked sensitive artifacts.
+- `SECURITYAUDIT.md` passed `markdownlint-cli2` after the report was appended.
+
+### Remaining Work
+
+- Address `SEC-001` first, then `SEC-002`; the complete ordered remediation
+  checklist is in `SECURITYAUDIT.md`.
+- Re-run both dependency audits and targeted tests after remediation.
+
 ## 2026-08-28 - Finalize Model-Neutral Handoff
 
 ### Request

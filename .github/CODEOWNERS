@@ -1,0 +1,6 @@
+# Signing configuration and release automation require maintainer review.
+/.github/workflows/ @brwinnov
+/.signpath/ @brwinnov
+/docs/CODE_SIGNING_POLICY.md @brwinnov
+/docs/PRIVACY.md @brwinnov
+/LICENSE @brwinnov

@@ -6,7 +6,8 @@ for use as press-kit source material alongside your own gameplay recording.
 
 **Status:** BETA — the Tauri desktop Steam downloader and legacy PowerShell
 script work; additional media sources remain planned. See
-[`PLAN.md`](PLAN.md) for the full roadmap and [`TODO.md`](TODO.md) for the
+[`docs/PLAN.md`](docs/PLAN.md) for the full roadmap and
+[`docs/TODO.md`](docs/TODO.md) for the
 active checklist.
 
 **Current release target:** one Windows MSI plus Linux `.deb` and `.rpm`
@@ -80,7 +81,7 @@ single MP4 with `-c copy` (no re-encoding, so it's fast and lossless).
 
 ## What's next
 
-Full detail in [`PLAN.md`](PLAN.md), short version:
+Full detail in [`docs/PLAN.md`](docs/PLAN.md), short version:
 
 1. Harden the Steam script (batch mode, screenshots/art, metadata sidecars)
 2. Complete packaged Windows/Linux smoke tests and Windows code signing
@@ -107,13 +108,35 @@ Ubuntu environment instead of a local WSL2 setup.
 
 ## Project docs
 
-- [`PLAN.md`](PLAN.md) — full roadmap
-- [`FEATURES.md`](FEATURES.md) — reviewable feature backlog and next-step ideas
-- [`TODO.md`](TODO.md) — active checklist
-- [`SECURITYAUDIT.md`](SECURITYAUDIT.md) — what data/credentials this project touches
+- [`docs/DOWNLOADS.md`](docs/DOWNLOADS.md) — downloads and verification
+- [`.signpath/README.md`](.signpath/README.md) — SignPath setup and templates
+- [`docs/PLAN.md`](docs/PLAN.md) — full roadmap
+- [`docs/FEATURES.md`](docs/FEATURES.md) — feature backlog and next-step ideas
+- [`docs/TODO.md`](docs/TODO.md) — active checklist
+- [`docs/SECURITYAUDIT.md`](docs/SECURITYAUDIT.md) — security audit and tasks
 - [`CHANGELOG.md`](CHANGELOG.md) — what's shipped
-- [`repo-update.md`](repo-update.md) — signed application auto-update plan
+- [`docs/repo-update.md`](docs/repo-update.md) — application auto-update plan
+- [`docs/PRIVACY.md`](docs/PRIVACY.md) — data and network-request policy
+- [`CONTRIBUTING.md`](CONTRIBUTING.md) — contribution workflow
+- [`SECURITY.md`](SECURITY.md) — private vulnerability reporting policy
 - [`AGENTS.md`](AGENTS.md) — model-neutral repository instructions
 - [`docs/ai-journal/`](docs/ai-journal/) — canonical pre-task context and
    post-task AI handoff journal
 - [`ai-journal/`](ai-journal/) — historical AI-assisted work-session records
+
+## Code signing policy
+
+The project intends to use SignPath Foundation after its application and build
+configuration are accepted. Free code signing provided by
+[SignPath.io](https://about.signpath.io/), certificate by
+[SignPath Foundation](https://signpath.org/). Releases are built from this
+repository and each signing request requires manual approval.
+
+- Committer and reviewer: [Barry Reilly (@brwinnov)](https://github.com/brwinnov)
+- Approver: [Barry Reilly (@brwinnov)](https://github.com/brwinnov)
+- Full policy: [`docs/CODE_SIGNING_POLICY.md`](docs/CODE_SIGNING_POLICY.md)
+- Privacy policy: [`docs/PRIVACY.md`](docs/PRIVACY.md)
+
+## License
+
+Game Content Creator Toolkit is licensed under the [MIT License](LICENSE).

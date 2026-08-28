@@ -88,7 +88,7 @@ app/
   `download_trailers` runs ffmpeg the same way (`-c copy`, DASH → MP4). The UI
   includes explicit clipboard paste and durable user-local history.
 - **YouTube / TikTok / Instagram / Facebook tabs**: UI placeholders only, matching the
-  visual style so they're easy to fill in later. See root `PLAN.md` Phase 3.
+  visual style so they're easy to fill in later. See `docs/PLAN.md` Phase 3.
 - **Settings tab**: shows the default download folder plus detected ffmpeg path
   and version. It can select an existing ffmpeg/ffprobe pair or install a
   checksum-verified Windows copy under user-local app data. Folder override

@@ -30,19 +30,29 @@ current worktree because source code and Git history remain authoritative.
 
 ## Current Planning State
 
-- `FEATURES.md` is the long-term backlog; `TODO.md` is active work; `PLAN.md` is
-  the phased roadmap; `CHANGELOG.md` records shipped behavior.
+- `docs/FEATURES.md` is the long-term backlog; `docs/TODO.md` is active work;
+  `docs/PLAN.md` is the phased roadmap; `CHANGELOG.md` records shipped behavior.
+- Project documentation lives under `docs/`; standard GitHub community files,
+  `AGENTS.md`, `CLAUDE.md`, and `CHANGELOG.md` remain at repository root.
 - `STM-10`, a user-triggered clipboard `PASTE` action, is shipped.
 - Recently reviewed creative-media ideas are technically feasible and tracked
   as `MED-01` through `MED-04` and `PKT-01` through `PKT-05`.
 - Recommended creative-media order: import/export and project inventory first,
   then background-removal prototypes, still-image canvas editing, and finally
   animated composition and controlled font installation.
-- Signed auto-update architecture is planned in `repo-update.md` but is not
+- Signed auto-update architecture is planned in `docs/repo-update.md` but is not
   implemented.
-- The next product choice is the first Phase 1 hardening item: metadata
-  sidecars (`STM-02`), screenshots/key art (`STM-03`), or batch input
-  (`STM-04`). `STM-02` is the smallest foundation-oriented option.
+- The 2026-08-28 source security audit found 0 critical, 2 high, 5 medium, and
+  2 low issues. See `docs/SECURITYAUDIT.md` for evidence and remediation tasks.
+- The repository is MIT-licensed. SignPath Foundation application answers,
+  artifact configurations, code-signing/privacy/download policies, fail-closed
+  tagged MSI submission, signature verification, and release checksums are
+  prepared. Acceptance and dashboard/repository credential setup remain.
+- Security remediation now precedes feature work: fix the deprecated Bash App
+  ID code-injection path (`SEC-001`), then implement release signing
+  (`SEC-002`) before broad distribution.
+- After security work, the next product choice is metadata sidecars (`STM-02`),
+  screenshots/key art (`STM-03`), or batch input (`STM-04`).
 
 ## Constraints and Decisions
 
@@ -52,6 +62,12 @@ current worktree because source code and Git history remain authoritative.
 - Steam data must come from supported APIs, not ephemeral browser Blob URLs.
 - Public-media workflows are in scope; DRM bypass and private-account credential
   capture are out of scope.
+- Project-owned source is distributed under MIT. Third-party components retain
+  their own licenses and must not be signed as project-owned binaries.
+- Tagged Windows releases must pass SignPath manual approval and timestamped
+  signature verification. Main-branch validation builds remain unsigned.
+- SignPath's free OSS tier documents RPM signing but not DEB signing; do not
+  claim signed Linux packages until each format has a verified implementation.
 - Clipboard reads must occur only after a user clicks `PASTE` and should request
   only Tauri's text-read capability.
 - Steam history and ffmpeg settings live under the stable Tauri identifier's
@@ -93,6 +109,9 @@ current worktree because source code and Git history remain authoritative.
   checks passed.
 - Managed ffmpeg installation still needs a clean Windows runtime test. Linux
   package/runtime testing and Authenticode signing also remain outstanding.
+- Dependency audits currently report 0 known npm and Rust vulnerabilities.
+  RustSec reports 18 non-vulnerability warnings, including a Linux GTK
+  unsoundness advisory; these are tracked under `SEC-007`.
 
 ## Start-of-Task Checklist
 

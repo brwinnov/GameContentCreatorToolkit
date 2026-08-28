@@ -238,7 +238,7 @@ fn save_history(app: AppHandle, history: Vec<serde_json::Value>) -> Result<(), S
 // ── Steam appdetails lookup ──────────────────────────────────────────────
 // Same endpoint and age-gate cookies as scripts/pwsh/download_steam_trailers.ps1.
 // These cookie values are fixed, publicly-known constants (not credentials) —
-// see SECURITYAUDIT.md at the repo root.
+// See docs/SECURITYAUDIT.md.
 
 #[tauri::command]
 async fn fetch_steam_trailers(app_id: String) -> Result<SteamTrailerResponse, String> {

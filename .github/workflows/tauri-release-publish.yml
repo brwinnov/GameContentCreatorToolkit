@@ -17,10 +17,19 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - name: Download all workflow artifacts
+      - name: Download signed Windows artifact
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
-          path: release-artifacts
+          name: windows-artifacts
+          path: release-artifacts/windows
+          run-id: ${{ github.event.workflow_run.id || github.run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download Linux artifacts
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: linux-artifacts
+          path: release-artifacts/linux
           run-id: ${{ github.event.workflow_run.id || github.run_id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           merge-multiple: false
@@ -29,7 +38,13 @@ jobs:
         run: |
           mkdir -p release-payload
           find release-artifacts -type f \( -iname "*.msi" -o -iname "*.deb" -o -iname "*.rpm" \) -exec cp {} release-payload/ \;
-          ls -l release-payload
+          test "$(find release-payload -maxdepth 1 -type f -name '*.msi' | wc -l)" -eq 1
+          test "$(find release-payload -maxdepth 1 -type f -name '*.deb' | wc -l)" -eq 1
+          test "$(find release-payload -maxdepth 1 -type f -name '*.rpm' | wc -l)" -eq 1
+          cd release-payload
+          sha256sum -- *.msi *.deb *.rpm > SHA256SUMS
+          sha256sum --check SHA256SUMS
+          ls -l
 
       - name: Create GitHub release
         id: create_release
@@ -37,5 +52,11 @@ jobs:
         with:
           tag_name: ${{ github.event.workflow_run.head_branch }}
           generate_release_notes: true
+          body: |
+            Free code signing provided by [SignPath.io](https://about.signpath.io/),
+            certificate by [SignPath Foundation](https://signpath.org/).
+
+            See the [code signing policy](https://github.com/brwinnov/GameContentCreatorToolkit/blob/main/docs/CODE_SIGNING_POLICY.md)
+            and verify downloads against `SHA256SUMS`.
           files: |
             release-payload/*

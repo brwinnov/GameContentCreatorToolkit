@@ -82,6 +82,7 @@ starting auto-update, social downloaders, and a major UI rewrite together.
 | STM-08 | Steam Workshop asset support | idea | P3 | XL | Separate legal/API and content-type investigation required. |
 | STM-09 | Store description and press facts export | idea | P2 | M | Export supported text metadata for review notes without copying user/private content. |
 | STM-10 | Paste Steam URL from clipboard | ready | P1 | S | Add a `PASTE` button beside the Steam input. Read clipboard text only after the user clicks, place it in the existing URL/App ID/game-name field, and show a clear message for an empty or unreadable clipboard. Use Tauri's clipboard plugin with text-read permission only. |
+| STM-11 | Safe per-game trailer folder | shipped | P1 | S | Downloads now use `<SteamID> <Safe_Game_Name>` under the selected root, reuse an existing folder with the same Steam ID, remove unsafe/special characters, and cap the title component at 100 characters. |
 
 ## Download Workflow
 
@@ -94,7 +95,7 @@ starting auto-update, social downloaders, and a major UI rewrite together.
 | APP-05 | Resume interrupted downloads | idea | P2 | L | Depends on source/range support and safe partial-file tracking. |
 | APP-06 | Duplicate detection across runs | planned | P1 | M | Use source identity plus optional hashes; distinguish skip, replace, and versioned copy. |
 | APP-07 | Naming templates | idea | P2 | M | Tokens such as game, asset type, date, resolution, and source. |
-| APP-08 | Automatic folder organization | planned | P1 | M | `GameName/Trailers`, `Screenshots`, `Art`, `Metadata`; configurable template. |
+| APP-08 | Automatic folder organization | planned | P1 | M | Build on the shipped `STM-11` game folder with `Trailers`, `Screenshots`, `Art`, and `Metadata` subfolders plus a configurable template. |
 | APP-09 | Disk-space and destination validation | planned | P1 | S | Check writable destination and estimated space before starting. |
 | APP-10 | In-app logs and diagnostics export | idea | P2 | M | Redact usernames/paths where possible; make support reports user-controlled. |
 | APP-11 | Native notifications | idea | P3 | S | Completion/failure notifications, configurable and non-spammy. |

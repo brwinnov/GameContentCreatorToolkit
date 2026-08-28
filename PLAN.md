@@ -62,6 +62,9 @@ history panel (see CHANGELOG) — reasonably feature-complete for an MVP.
 - Paste-a-URL (or search-by-name) entry point → resolve to Steam App ID →
   detect all available media → present the same All / Latest / Pick-one options
   as the current script, now as UI instead of a text menu
+- [x] Put each game's trailers in `<SteamID> <Safe_Game_Name>` beneath the
+  selected download root (`STM-11`), reusing a prior same-ID folder and
+  sanitizing the title for Windows/Linux path safety.
 - Add a user-triggered `PASTE` button beside the Steam input (`STM-10`). It
   reads clipboard text into the existing field using Tauri's text-read-only
   clipboard permission and handles empty or denied clipboard access clearly.

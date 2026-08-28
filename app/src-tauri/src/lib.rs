@@ -26,6 +26,7 @@ pub struct TrailerInfo {
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SteamTrailerResponse {
+    pub game_name: String,
     pub trailers: Vec<TrailerInfo>,
 }
 
@@ -140,6 +141,14 @@ async fn fetch_steam_trailers(app_id: String) -> Result<SteamTrailerResponse, St
         .cloned()
         .unwrap_or_default();
 
+    let game_name = app_data
+        .get("data")
+        .and_then(|d| d.get("name"))
+        .and_then(|name| name.as_str())
+        .filter(|name| !name.trim().is_empty())
+        .ok_or_else(|| format!("Steam returned no game name for App ID {app_id}."))?
+        .to_string();
+
     let trailers = movies
         .iter()
         .filter_map(|m| {
@@ -149,7 +158,10 @@ async fn fetch_steam_trailers(app_id: String) -> Result<SteamTrailerResponse, St
         })
         .collect();
 
-    Ok(SteamTrailerResponse { trailers })
+    Ok(SteamTrailerResponse {
+        game_name,
+        trailers,
+    })
 }
 
 // ── Steam game-name lookup ──────────────────────────────────────────────
@@ -374,11 +386,113 @@ fn safe_filename(name: &str) -> String {
     out.trim_matches('_').to_lowercase()
 }
 
+fn safe_game_folder_name(name: &str) -> String {
+    const MAX_GAME_NAME_LENGTH: usize = 100;
+    let mut out = String::new();
+    let mut last_was_separator = false;
+
+    for character in name.chars() {
+        if out.len() >= MAX_GAME_NAME_LENGTH {
+            break;
+        }
+        if character.is_ascii_alphanumeric() {
+            out.push(character);
+            last_was_separator = false;
+        } else if !out.is_empty() && !last_was_separator {
+            out.push('_');
+            last_was_separator = true;
+        }
+    }
+
+    let sanitized = out.trim_matches('_');
+    if sanitized.is_empty() {
+        "Steam_Game".to_string()
+    } else {
+        sanitized.to_string()
+    }
+}
+
+fn existing_game_dir(output_dir: &Path, app_id: &str) -> Option<PathBuf> {
+    let prefix = format!("{app_id} ");
+    std::fs::read_dir(output_dir)
+        .ok()?
+        .filter_map(Result::ok)
+        .filter(|entry| entry.file_type().map(|kind| kind.is_dir()).unwrap_or(false))
+        .find(|entry| entry.file_name().to_string_lossy().starts_with(&prefix))
+        .map(|entry| entry.path())
+}
+
+fn game_download_dir(output_dir: &Path, app_id: &str, game_name: &str) -> Result<PathBuf, String> {
+    if app_id.is_empty() || !app_id.chars().all(|character| character.is_ascii_digit()) {
+        return Err("Steam App ID must contain digits only.".to_string());
+    }
+
+    if let Some(existing) = existing_game_dir(output_dir, app_id) {
+        return Ok(existing);
+    }
+
+    Ok(output_dir.join(format!("{app_id} {}", safe_game_folder_name(game_name))))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{game_download_dir, safe_game_folder_name};
+    use std::path::Path;
+
+    #[test]
+    fn sanitizes_game_name_for_cross_platform_folder() {
+        assert_eq!(
+            safe_game_folder_name("Call of Duty: Modern Warfare 4™"),
+            "Call_of_Duty_Modern_Warfare_4"
+        );
+        assert_eq!(safe_game_folder_name("???"), "Steam_Game");
+        assert_eq!(safe_game_folder_name(&"A".repeat(150)).len(), 100);
+    }
+
+    #[test]
+    fn builds_expected_game_folder_name() {
+        let result = game_download_dir(
+            Path::new("downloads"),
+            "4435490",
+            "Call of Duty: Modern Warfare 4",
+        )
+        .expect("valid game folder");
+
+        assert_eq!(
+            result,
+            Path::new("downloads").join("4435490 Call_of_Duty_Modern_Warfare_4")
+        );
+    }
+
+    #[test]
+    fn rejects_non_numeric_app_id() {
+        assert!(game_download_dir(Path::new("downloads"), "../4435490", "Game").is_err());
+    }
+
+    #[test]
+    fn reuses_existing_folder_for_same_app_id() {
+        let root = std::env::temp_dir().join(format!(
+            "gcc-toolkit-game-folder-test-{}",
+            std::process::id()
+        ));
+        let existing = root.join("4435490 Existing_Name");
+        std::fs::create_dir_all(&existing).expect("create test directory");
+
+        let result = game_download_dir(&root, "4435490", "Changed Name")
+            .expect("reuse existing game folder");
+
+        assert_eq!(result, existing);
+        std::fs::remove_dir_all(root).expect("remove test directory");
+    }
+}
+
 // ── Download ──────────────────────────────────────────────────────────────
 
 #[tauri::command]
 async fn download_trailers(
     app: AppHandle,
+    app_id: String,
+    game_name: String,
     output_dir: String,
     trailers: Vec<TrailerInfo>,
 ) -> Result<DownloadSummary, String> {
@@ -386,10 +500,19 @@ async fn download_trailers(
         "ffmpeg not found. Install it (winget/scoop/choco/brew) or check Settings.".to_string()
     })?;
 
-    let out_dir = Path::new(&output_dir);
-    tokio::fs::create_dir_all(out_dir)
+    let output_root = Path::new(&output_dir);
+    tokio::fs::create_dir_all(output_root)
         .await
         .map_err(|e| format!("Could not create output folder: {e}"))?;
+    let out_dir = game_download_dir(output_root, &app_id, &game_name)?;
+    tokio::fs::create_dir_all(&out_dir)
+        .await
+        .map_err(|e| format!("Could not create game folder: {e}"))?;
+    emit_progress(
+        &app,
+        "INFO",
+        format!("Game folder -> {}", out_dir.display()),
+    );
 
     let mut success = 0u32;
     let mut skipped = 0u32;

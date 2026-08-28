@@ -11,7 +11,7 @@ current worktree because source code and Git history remain authoritative.
 - The working feature downloads official Steam trailers through Steam's API and
   remuxes DASH media to MP4 with ffmpeg.
 - Windows MSI/NSIS and Linux DEB/RPM packages are released through tag-driven
-  GitHub Actions. The latest documented release is `v0.1.1`.
+  GitHub Actions. Version `0.1.2` is the current patch release candidate.
 - The frontend is plain HTML, CSS, and JavaScript under `app/src/`; the backend
   is Rust under `app/src-tauri/src/`.
 - `scripts/pwsh/download_steam_trailers.ps1` is the authoritative legacy script.
@@ -19,6 +19,8 @@ current worktree because source code and Git history remain authoritative.
   must not be edited directly.
 - ffmpeg and ffprobe are external dependencies. Windows bundling is planned but
   not yet shipped; Linux installation remains user-managed.
+- Steam trailer downloads are grouped beneath the selected root in a safe
+  `<SteamID> <Safe_Game_Name>` folder. Existing same-ID folders are reused.
 
 ## Current Planning State
 

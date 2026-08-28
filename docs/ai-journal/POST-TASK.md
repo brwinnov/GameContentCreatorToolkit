@@ -4,6 +4,44 @@ Add completed tasks directly below this introduction, newest first. Keep each
 entry concise enough for another AI assistant to understand what changed and
 what remains without reading a chat transcript.
 
+## 2026-08-28 - Safe Per-Game Trailer Folders
+
+### Request
+
+Group each game's Steam trailer downloads in a safe folder combining its Steam
+ID and game name, reuse prior folders, prioritize the fix, and report the next
+TODO item.
+
+### Decisions
+
+- Use the authoritative game name from Steam's `appdetails` response.
+- Name new folders `<SteamID> <Safe_Game_Name>` using ASCII letters, digits,
+  and underscores, with a 100-character title limit.
+- Reuse an existing directory whose name begins with the Steam ID followed by
+  a space, so a later Steam title change does not split one game's downloads.
+- Keep broader asset-type subfolders tracked separately as `APP-08`.
+
+### Changed
+
+- Extended the Steam response and frontend download request with `gameName`.
+- Added backend folder sanitization, numeric ID validation, same-ID lookup,
+  directory creation, and the resolved-folder progress message.
+- Marked `STM-11` shipped across feature, roadmap, TODO, and changelog docs.
+- Bumped all application version sources to `0.1.2` for a Windows upgrade
+  installer that can replace the existing `0.1.1` installation.
+
+### Validation
+
+- `cargo fmt --check`: passed.
+- `cargo clippy --all-targets -- -D warnings`: passed.
+- `cargo test`: 4 passed, 0 failed.
+- `node --check app/src/main.js`: passed.
+
+### Remaining Work
+
+- Implement `STM-10`, the Steam clipboard `PASTE` button, next.
+- Runtime-test folder creation with a real download before the next release.
+
 ## 2026-08-28 - Clipboard Idea and Feasibility Review
 
 ### Request

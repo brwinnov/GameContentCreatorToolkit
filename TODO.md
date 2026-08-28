@@ -43,13 +43,16 @@ Living checklist. Move finished items to CHANGELOG.md, don't just delete them.
       App ID 2201940 (Ship Graveyard Simulator 2).
 - [x] Release hardening pass (2026-08-16): hide child-process console windows,
       create shareable Windows test builds, and add Steam game-name search.
+- [x] Store trailer downloads in a safe per-game folder (`STM-11`) named
+      `<SteamID> <Safe_Game_Name>`, reusing an existing same-ID folder. Rust
+      tests cover sanitization, length limits, ID validation, and reuse.
 - [ ] Add the Steam `PASTE` button (`STM-10`): on a user click, read text from
       the clipboard into the existing Steam URL/App ID/game-name field. Request
       only clipboard text-read permission; handle empty, denied, and unavailable
       clipboard states; retain Enter and Find trailers behavior; test in the
-      packaged Windows and Linux apps plus browser preview fallback.
+      packaged Windows and Linux apps plus browser preview fallback. **Next up.**
 - [ ] Pick first Phase 1 hardening item (batch mode vs. metadata sidecar vs.
-      screenshot/art pulling) and implement — **next up**
+      screenshot/art pulling) and implement.
 
 ## Later
 

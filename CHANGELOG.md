@@ -3,10 +3,12 @@
 All notable changes to this project. Format loosely follows
 [Keep a Changelog](https://keepachangelog.com/).
 
-## [Unreleased]
+## [0.1.2] — 2026-08-28
 
 ### Added
 
+- Safe per-game Steam trailer folders named `<SteamID> <Safe_Game_Name>`, with
+  same-ID folder reuse and cross-platform title sanitization.
 - Steam clipboard-paste idea (`STM-10`) and feasibility review for the planned
   creative-media and PressKit workspace.
 - Model-neutral pre-task and post-task AI handoff workflow under

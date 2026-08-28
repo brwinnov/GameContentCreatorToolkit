@@ -25,7 +25,7 @@ if (hasTauri) {
     await wait(400);
     if (cmd === "fetch_steam_trailers") {
       if (!/^\d+$/.test(args.appId)) throw "Steam returned no data for that App ID.";
-      return { trailers: MOCK_TRAILERS };
+      return { gameName: "Parcel Simulator", trailers: MOCK_TRAILERS };
     }
     if (cmd === "search_steam_games_by_name") {
       const q = (args.query || "").trim().toLowerCase();
@@ -122,6 +122,7 @@ const historyClose = document.getElementById("history-close");
 const historyClearBtn = document.getElementById("history-clear");
 
 let currentAppId = null;
+let currentGameName = null;
 let currentTrailers = [];
 let outputDir = null;
 let currentDownloadName = null;
@@ -337,6 +338,7 @@ async function fetchTrailers() {
 
   try {
     const data = await invoke("fetch_steam_trailers", { appId });
+    currentGameName = data.gameName;
     currentTrailers = data.trailers;
 
     if (!currentTrailers.length) {
@@ -482,6 +484,7 @@ steamDownloadBtn.addEventListener("click", async () => {
   try {
     const summary = await invoke("download_trailers", {
       appId: currentAppId,
+      gameName: currentGameName,
       outputDir,
       trailers: selected,
     });

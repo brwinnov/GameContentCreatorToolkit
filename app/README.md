@@ -38,8 +38,9 @@ npm run tauri dev
 ```
 
 This opens the real desktop window with the Rust backend wired up — Steam
-lookups and downloads will work for real (ffmpeg still required, same as the
-standalone script — see the root `README.md`).
+lookups and downloads will work for real. ffmpeg is still required, but Windows
+users can install a verified user-local copy from Home or Settings; users can
+also select an existing ffmpeg/ffprobe pair.
 
 ### 4. Build an installer
 
@@ -47,9 +48,9 @@ standalone script — see the root `README.md`).
 npm run tauri build
 ```
 
-Output lands in `src-tauri/target/release/bundle/`. The current release plan is
-Windows installers plus Linux `.deb` and `.rpm` bundles; macOS `.app`/DMG is
-not part of the active roadmap.
+Output lands in `src-tauri/target/release/bundle/`. Public Windows releases use
+one MSI installer; Linux releases use `.deb` and `.rpm` bundles. macOS
+`.app`/DMG is not part of the active roadmap.
 
 ## Icons
 
@@ -84,9 +85,11 @@ app/
 
 - **Steam tab**: fully functional. `fetch_steam_trailers` calls the same
   Steam `appdetails` API + age-gate cookies as the PowerShell script;
-  `download_trailers` runs ffmpeg the same way (`-c copy`, DASH → MP4).
+  `download_trailers` runs ffmpeg the same way (`-c copy`, DASH → MP4). The UI
+  includes explicit clipboard paste and durable user-local history.
 - **YouTube / TikTok / Instagram / Facebook tabs**: UI placeholders only, matching the
   visual style so they're easy to fill in later. See root `PLAN.md` Phase 3.
-- **Settings tab**: shows the default download folder (OS Downloads folder
-  via the `dirs` crate) and detected ffmpeg path. Folder override uses the
-  native OS picker (Tauri's dialog plugin).
+- **Settings tab**: shows the default download folder plus detected ffmpeg path
+  and version. It can select an existing ffmpeg/ffprobe pair or install a
+  checksum-verified Windows copy under user-local app data. Folder override
+  uses the native OS picker (Tauri's dialog plugin).

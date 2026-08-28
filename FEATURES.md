@@ -19,11 +19,11 @@ These are the strongest candidates for the next focused milestone:
 
 | ID | Feature | Why now |
 | --- | --- | --- |
-| STM-10 | Paste Steam URL from clipboard | Small usability improvement that shortens the existing Steam-client-to-app workflow. |
-| DEP-01 | Bundle ffmpeg/ffprobe on Windows | Makes the working Steam feature usable without manual dependency setup. |
 | STM-03 | Screenshots and key art | High creator value using data already available from Steam. |
 | STM-02 | Metadata sidecars | Small, useful foundation for organization and Resolve workflows. |
+| STM-04 | Batch game input | Turns one-game lookup into a repeatable production workflow. |
 | APP-03 | Download queue and batch mode | Turns the app from a one-game tool into a repeatable production utility. |
+| DEP-07 | Third-party notices | Required before broader distribution of managed ffmpeg downloads. |
 
 Choose one primary feature and one small supporting item per milestone. Avoid
 starting auto-update, social downloaders, and a major UI rewrite together.
@@ -38,17 +38,17 @@ starting auto-update, social downloaders, and a major UI rewrite together.
 | APP-00 | Tauri desktop application | shipped | Windows and Linux package builds are operational. |
 | APP-00A | Native download-folder picker | shipped | Defaults to the OS Downloads folder. |
 | APP-00B | Live download progress | shipped | Based on ffprobe duration and ffmpeg progress. |
-| APP-00C | Search/download history | shipped | Local browser storage, capped at 200 entries. |
-| REL-00 | Windows and Linux CI packages | shipped | MSI, NSIS, `.deb`, and `.rpm` build successfully. |
+| APP-00C | Search/download history | shipped | Durable user-local JSON, capped at 200 entries, with one-time legacy WebView recovery. |
+| REL-00 | Windows and Linux CI packages | shipped | MSI, `.deb`, and `.rpm` build successfully. |
 
 ## Release and Distribution
 
 | ID | Feature | Status | Priority | Effort | Dependencies / decision notes |
 | --- | --- | ---: | ---: | ---: | --- |
 | REL-01 | Clean beta release baseline | shipped | P0 | M | Completed in `v0.1.1`: tag and artifact provenance aligned, lockfile committed, duplicate assets removed, and release notes updated. |
-| REL-02 | Per-user Windows NSIS install | planned | P1 | S | Change install mode to `currentUser`; validate install/update/uninstall under `%LOCALAPPDATA%`. |
+| REL-02 | Single Windows MSI distribution | shipped | P1 | S | MSI is the only public Windows installer. Preserve the original WiX UpgradeCode and validate install/update/uninstall against prior releases. |
 | REL-03 | Portable Windows ZIP | planned | P1 | M | Package app plus required tools and notices; portable builds receive update notifications but do not overwrite themselves. |
-| REL-04 | Signed application auto-update | planned | P1 | L | Detailed in `repo-update.md`; requires per-user install, signing keys, tag-driven releases, and update UI. |
+| REL-04 | Signed application auto-update | planned | P1 | L | Detailed in `repo-update.md`; requires MSI elevation handling, signing keys, tag-driven releases, and update UI. |
 | REL-05 | Windows Authenticode signing | planned | P1 | M | Requires a code-signing certificate and secured CI signing process. |
 | REL-06 | Stable and beta update channels | idea | P2 | M | Separate signed manifests; stable installations must ignore prereleases. |
 | REL-07 | Linux AppImage | idea | P2 | M | Enables Tauri-style Linux self-update; retain `.deb`/`.rpm` for package-manager users. |
@@ -60,9 +60,9 @@ starting auto-update, social downloaders, and a major UI rewrite together.
 
 | ID | Feature | Status | Priority | Effort | Dependencies / decision notes |
 | --- | --- | ---: | ---: | ---: | --- |
-| DEP-01 | Bundle ffmpeg and ffprobe on Windows | ready | P1 | M | Pin a redistributable build; verify SHA-256 in CI; include exact license/build notices. |
+| DEP-01 | Install managed ffmpeg and ffprobe on Windows | shipped | P1 | M | Downloads the latest BtbN LGPL ZIP after user approval, verifies it against the release checksum manifest, and extracts only ffmpeg/ffprobe under user-local app data. |
 | DEP-02 | Detect and explain missing Linux ffmpeg | planned | P1 | S | Show distro-appropriate commands and retry detection; do not silently install system packages. |
-| DEP-03 | Tool version display and diagnostics | planned | P2 | S | Show app, ffmpeg, ffprobe, and future yt-dlp versions in Settings/About. |
+| DEP-03 | Tool version display and diagnostics | planned | P2 | S | ffmpeg version now appears on Home and Settings; add ffprobe and future yt-dlp versions plus broader diagnostics later. |
 | DEP-04 | Verified yt-dlp baseline bundle | planned | P1 | M | Implement only when the first social downloader ships; keep shipped copy as fallback. |
 | DEP-05 | Independent verified yt-dlp updater | idea | P2 | L | Official source only, checksum/signature validation, staged activation, health check, rollback. |
 | DEP-06 | Dependency lockfiles and reproducible CI | shipped | P0 | S | `package-lock.json` and `Cargo.lock` are committed; release CI uses `npm ci`, validates versions, and pins critical Actions. |
@@ -81,7 +81,7 @@ starting auto-update, social downloaders, and a major UI rewrite together.
 | STM-07 | Language and region selection | idea | P3 | M | Make Steam `cc` and `l` configurable. |
 | STM-08 | Steam Workshop asset support | idea | P3 | XL | Separate legal/API and content-type investigation required. |
 | STM-09 | Store description and press facts export | idea | P2 | M | Export supported text metadata for review notes without copying user/private content. |
-| STM-10 | Paste Steam URL from clipboard | ready | P1 | S | Add a `PASTE` button beside the Steam input. Read clipboard text only after the user clicks, place it in the existing URL/App ID/game-name field, and show a clear message for an empty or unreadable clipboard. Use Tauri's clipboard plugin with text-read permission only. |
+| STM-10 | Paste Steam URL from clipboard | shipped | P1 | S | `PASTE` reads clipboard text only after a user click, fills the existing field, and reports empty or denied clipboard access. |
 | STM-11 | Safe per-game trailer folder | shipped | P1 | S | Downloads now use `<SteamID> <Safe_Game_Name>` under the selected root, reuse an existing folder with the same Steam ID, remove unsafe/special characters, and cap the title component at 100 characters. |
 
 ## Download Workflow
@@ -163,8 +163,9 @@ without first creating a project.
 | PKT-03 | Doable, highest technical risk | Animated decode, synchronized preview, memory limits, timeline controls, and GIF/WebM encoding are feasible but significantly more complex than still-image composition. Prototype after PKT-02 and use ffmpeg for final encoding where practical. |
 | PKT-05 | Doable, platform-specific and sensitive | Windows and Linux support per-user font installation, but mechanisms and refresh behavior differ. Require a local font file, format validation, license/source preview, explicit confirmation, and no elevation; defer system-wide installation. |
 
-All submitted ideas are technically feasible. The recommended order is
-`STM-10`, `MED-01`, `MED-04`, `PKT-01`, `MED-02`, `MED-03`, `PKT-02`/
+All submitted ideas are technically feasible. With `STM-10` shipped, the
+recommended creative-media order is `MED-01`, `MED-04`, `PKT-01`, `MED-02`,
+`MED-03`, `PKT-02`/
 `PKT-04`, then `PKT-03` and `PKT-05` after focused prototypes.
 
 ## Reliability, Security, and Privacy
@@ -213,8 +214,6 @@ Before promoting an idea to `ready`, answer:
 - Which license should govern the repository?
 - Should the next public version focus on release integrity or a new creator
   feature?
-- Should Windows bundle ffmpeg immediately, or first ship improved dependency
-  guidance?
 - Which Steam enhancement should come first: art, metadata, or batch queues?
 - Is YouTube the first social source, or should the shared downloader interface
   be completed and tested before any new source?

@@ -2,14 +2,16 @@
 
 ## Project purpose
 
-PowerShell 7 tool to download Steam game trailers as local MP4 files.
-Queries the Steam API directly — no browser DevTools, no manual URL hunting.
-Longer-term: this is the first module of a cross-platform (Tauri) desktop app
-for game-review content creators — see `PLAN.md`.
+Tauri v2 desktop toolkit for game-review content creators. Its working Steam
+module downloads official trailers as local MP4 files through Steam's API,
+without browser DevTools or manual URL hunting. A PowerShell 7 implementation
+is retained as the authoritative legacy script; see `PLAN.md`.
 
 ## Status
 
-Script is confirmed stable: the local `initial/` copy and
+Version `0.1.3` is the current release candidate. The desktop Steam workflow,
+clipboard paste, durable history, per-game folders, and Windows ffmpeg setup
+are implemented. The legacy script is confirmed stable: the local `initial/` copy and
 `scripts/pwsh/download_steam_trailers.ps1` were diffed and are byte-identical
 (matching MD5). One authoritative version, no merge needed.
 
@@ -48,6 +50,10 @@ project status, priorities, constraints, or the recommended next action changes.
 
 `F:\ffmpeg\bin\ffmpeg.exe` — already hardcoded in the candidate probe list.
 yt-dlp is also at `F:\ffmpeg\bin\yt-dlp.exe`.
+
+The Windows app can alternatively install a checksum-verified ffmpeg/ffprobe
+pair under `%LOCALAPPDATA%\com.ackrosgaming.gcc\tools\ffmpeg\bin` or persist a
+user-selected pair in Settings.
 
 ## Steam API behaviour
 

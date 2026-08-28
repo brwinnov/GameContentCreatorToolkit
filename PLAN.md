@@ -7,14 +7,14 @@ A toolkit for game-review content creators to pull down official media assets
 press-kit source material alongside your own raw gameplay recording (DaVinci
 Resolve Studio being the target NLE).
 
-## Current state (as of 2026-08-16)
+## Current state (as of 2026-08-28)
 
 - **Working**: `scripts/pwsh/download_steam_trailers.ps1` — PowerShell 7 script.
   Given a Steam App ID, queries the Steam `appdetails` API directly (not HTML
   scraping), pulls each trailer's `dash_h264` DASH manifest, and reassembles it
   into an MP4 via `ffmpeg -c copy`. Supports `-Latest N`, `-Oldest N`,
   `-ListOnly`, and an interactive `[A]/[1]/[#]` selection menu.
-- **Current release targets:** Windows desktop installers plus Linux `.deb` and
+- **Current release targets:** one Windows MSI installer plus Linux `.deb` and
   `.rpm` packages. macOS is intentionally deferred until after the first stable
   Windows/Linux release set is validated.
 - Two locations for this script exist by design: `scripts/pwsh/` (source of
@@ -65,11 +65,13 @@ history panel (see CHANGELOG) — reasonably feature-complete for an MVP.
 - [x] Put each game's trailers in `<SteamID> <Safe_Game_Name>` beneath the
   selected download root (`STM-11`), reusing a prior same-ID folder and
   sanitizing the title for Windows/Linux path safety.
-- Add a user-triggered `PASTE` button beside the Steam input (`STM-10`). It
+- [x] Add a user-triggered `PASTE` button beside the Steam input (`STM-10`). It
   reads clipboard text into the existing field using Tauri's text-read-only
   clipboard permission and handles empty or denied clipboard access clearly.
 - Settings panel: download location (defaults to OS user Downloads folder),
-  quality preference, ffmpeg/yt-dlp path overrides
+  quality preference, ffmpeg/yt-dlp path overrides. Windows can install a
+  checksum-verified ffmpeg/ffprobe pair under user-local app data without
+  elevation.
 - Package the current PowerShell logic as the first "downloader module";
   design the module interface so Phase 3 downloaders plug into the same shape
 - **Deferred:** macOS app bundle / DMG distribution is not part of the current
@@ -123,10 +125,9 @@ export limits on both Windows and Linux.
 - Pester tests for the PowerShell logic; CI on Windows/Linux/macOS
 - Steam Workshop asset support
 - Local caching of API responses (TTL-based)
-- ~~Download history / analytics log~~ — basic version shipped 2026-08-01 for
-  the Steam tab (frontend-only, `localStorage`-backed). Remaining here for
-  later: extend to the other platform tabs once they exist, and/or move it to
-  a real Rust-side log file if cross-device/exportable history is ever needed.
+- ~~Download history / analytics log~~ — Steam history is now stored as durable
+  user-local JSON with one-time legacy WebView recovery. Remaining work is to
+  extend history to other platform tabs and add user-controlled export if needed.
 
 ## Explicitly deferred / not doing (for now)
 

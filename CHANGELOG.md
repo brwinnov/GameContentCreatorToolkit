@@ -3,6 +3,23 @@
 All notable changes to this project. Format loosely follows
 [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.1.3] — 2026-08-28
+
+### Added
+
+- Clipboard `PASTE` action beside the Steam input, using text-read permission
+  only after an explicit click.
+- First-steps and Settings controls to install a checksum-verified Windows
+  ffmpeg/ffprobe pair under user-local app data or choose an existing copy.
+- Detected ffmpeg version on both the Home overview and Settings page.
+
+### Changed
+
+- Moved Steam history from WebView `localStorage` to a durable JSON file under
+  user-local app data and added one-time recovery from the legacy app profile.
+- Standardized Windows releases on MSI and removed the duplicate NSIS artifact
+  path to prevent competing installation lineages.
+
 ## [0.1.2] — 2026-08-28
 
 ### Added

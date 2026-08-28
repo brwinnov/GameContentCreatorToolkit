@@ -1,9 +1,11 @@
 # AI Task Handoff
 
 This directory is the model-neutral handoff point for GitHub Copilot, Claude
-Code, and other AI coding assistants. It complements Git history and the older
-dated records in [`../../ai-journal/`](../../ai-journal/); it is not a chat
-transcript archive.
+Code, Claude CLI, and other AI coding assistants or models. Start a replacement
+session by asking it to read this file, [`PRE-TASK.md`](PRE-TASK.md), and the
+repository root [`AGENTS.md`](../../AGENTS.md). It complements Git history and
+the older dated records in [`../../ai-journal/`](../../ai-journal/); it is not a
+chat transcript archive.
 
 ## Required Workflow
 
@@ -29,3 +31,5 @@ transcript archive.
 
 Never place credentials, tokens, private user data, or full chat transcripts in
 these files. Prefer paths and commit IDs over copied code or terminal output.
+Older `POST-TASK.md` entries are historical snapshots; their remaining-work
+lists may be superseded by newer entries and the current `PRE-TASK.md`.

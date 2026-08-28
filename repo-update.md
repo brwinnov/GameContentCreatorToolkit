@@ -2,7 +2,7 @@
 
 Plan for adding secure, user-approved application updates to GCCtoolkit.
 This document reflects the current project architecture and Tauri v2 updater
-recommendations as of 2026-08-16.
+recommendations as of 2026-08-28.
 
 ## Decision
 
@@ -21,7 +21,7 @@ execute arbitrary download links, or install an unsigned update.
 
 Initial scope:
 
-- Windows per-user NSIS installation: full in-app update support
+- Windows MSI installation: full in-app update support
 - Windows portable ZIP: update notification and download guidance only
 - Linux `.deb` and `.rpm`: update notification and package download guidance
 - macOS: deferred with the rest of macOS support
@@ -54,22 +54,22 @@ clear consent.
 
 ## Installation Model
 
-Change the normal Windows NSIS installer from machine-wide installation to a
-per-user installation under `%LOCALAPPDATA%`:
+Keep MSI as the sole supported Windows installer and preserve the original WiX
+UpgradeCode in every release. Existing installations are machine-wide under:
 
 ```text
-%LOCALAPPDATA%\Programs\GCCtoolkit\
+%PROGRAMFILES%\AckrosGaming\Game Content Creator Toolkit\
 ```
 
-This avoids elevation for normal installation and updater execution. Use the
-Tauri NSIS `currentUser` install mode. Keep MSI as an optional enterprise or
-administrator-managed package, but do not present it as the primary path for
-automatic per-user updates.
+Updates may require Windows elevation. Use Tauri's passive update mode so this
+is visible to the user. Do not introduce NSIS as a second installation lineage;
+switching installer technologies can leave duplicate uninstall entries or fail
+to remove the existing MSI-managed application.
 
 Mutable state must remain outside the installation directory:
 
 ```text
-%LOCALAPPDATA%\GCCtoolkit\
+%LOCALAPPDATA%\com.ackrosgaming.gcc\
 ```
 
 Settings, logs, update staging files, and future independently updated tools
@@ -137,7 +137,7 @@ is:
   "platforms": {
     "windows-x86_64": {
       "signature": "CONTENTS_OF_THE_GENERATED_SIG_FILE",
-      "url": "https://github.com/brwinnov/GameContentCreatorToolkit/releases/download/v0.2.0/GCCtoolkit_0.2.0_x64-setup.exe"
+      "url": "https://github.com/brwinnov/GameContentCreatorToolkit/releases/download/v0.2.0/GCCtoolkit_0.2.0_x64_en-US.msi"
     }
   }
 }
@@ -221,7 +221,7 @@ Replace the current release process with a tag-driven release workflow:
 2. Confirm the tag version equals all application version fields.
 3. Install dependencies with lockfiles (`npm ci` and Cargo's lockfile).
 4. Run formatting, linting, unit tests, and a release compile check.
-5. Build Windows NSIS/MSI and Linux `.deb`/`.rpm` artifacts.
+5. Build Windows MSI and Linux `.deb`/`.rpm` artifacts.
 6. Generate updater artifacts by setting `createUpdaterArtifacts: true` and
    supplying the private key through the job environment.
 7. Generate SHA-256 checksums for every public artifact.
@@ -329,8 +329,10 @@ complicate feed security.
 
 Before enabling updates for public users:
 
-- [ ] Switch NSIS to per-user (`currentUser`) installation and test clean install,
-      update, uninstall, and reinstall on Windows 10 and Windows 11.
+- [ ] Test MSI clean install, update from every supported prior version,
+      uninstall, and reinstall on Windows 10 and Windows 11.
+- [x] Assert the MSI version and UpgradeCode match Tauri configuration before
+  artifact upload.
 - [ ] Generate, back up, and configure the Tauri updater signing keys.
 - [ ] Add updater/process dependencies and least-privilege capabilities.
 - [ ] Add `createUpdaterArtifacts: true`, the public key, and the HTTPS endpoint.
@@ -356,11 +358,11 @@ Before enabling updates for public users:
 - Build only from tags for public releases.
 - Add checksums, signing secrets, and draft-release verification.
 
-### Phase 2: Per-user Windows installation
+### Phase 2: Windows MSI upgrade validation
 
-- Change NSIS to `currentUser`.
-- Confirm `%LOCALAPPDATA%` installation and no-elevation update behavior.
-- Keep MSI as a separately documented enterprise option.
+- Preserve the original MSI UpgradeCode across every version.
+- Confirm clean install, elevated update, repair, and uninstall behavior.
+- [x] Detect and block unexpected installer identity changes in release CI.
 
 ### Phase 3: Update notification
 
@@ -381,8 +383,8 @@ Before enabling updates for public users:
 
 ## Definition of Done
 
-Auto-update is ready when a clean per-user installation can detect a newer
+Auto-update is ready when a clean MSI installation can detect a newer
 tagged stable release, obtain explicit user approval, download the correct
 platform package in the background, cryptographically verify it, preserve user
-state, install without elevation, restart successfully, and remain usable after
-every tested failure mode.
+state, request elevation when Windows requires it, restart successfully, and
+remain usable after every tested failure mode.

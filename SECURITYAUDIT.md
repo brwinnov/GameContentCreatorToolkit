@@ -31,9 +31,12 @@ required or stored by this project.**
 
 ## External dependencies / supply-chain notes
 
-- **ffmpeg** — not bundled in the repo. User installs via winget/scoop/choco/
-  brew/apt. Script only auto-detects common install paths, never downloads or
-  executes an unverified binary on your behalf.
+- **ffmpeg** — not bundled in the repo or MSI. On Windows, the app can download
+  the latest BtbN LGPL static ZIP only after an explicit user click, verify its
+  SHA-256 against that release's `checksums.sha256`, enforce download/extraction
+  size limits, and extract only `ffmpeg.exe` and `ffprobe.exe` under user-local
+  app data. Users may instead choose an existing pair in Settings. Linux remains
+  user-managed.
 - **yt-dlp** (planned, Phase 3) — same policy: user-installed, not bundled.
   yt-dlp interacts with third-party platforms (YouTube/TikTok/FB/Instagram);
   review its own security advisories periodically since it's under active,

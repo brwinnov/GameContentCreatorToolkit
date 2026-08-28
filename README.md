@@ -4,13 +4,13 @@ A toolkit for game-review content creators: pull official media assets
 (trailers, screenshots, key art) straight from a game's store/social pages,
 for use as press-kit source material alongside your own gameplay recording.
 
-**Status:** BETA — one working piece so far, more planned. See
+**Status:** BETA — the Tauri desktop Steam downloader and legacy PowerShell
+script work; additional media sources remain planned. See
 [`PLAN.md`](PLAN.md) for the full roadmap and [`TODO.md`](TODO.md) for the
 active checklist.
 
-**Current release target:** Windows desktop builds plus Linux `.deb` and `.rpm`
-packages. macOS is intentionally deferred for now while we stabilize the first
-productive Windows/Linux release set.
+**Current release target:** one Windows MSI plus Linux `.deb` and `.rpm`
+packages. macOS is intentionally deferred while Windows/Linux stabilize.
 
 ---
 
@@ -83,12 +83,10 @@ single MP4 with `-c copy` (no re-encoding, so it's fast and lossless).
 Full detail in [`PLAN.md`](PLAN.md), short version:
 
 1. Harden the Steam script (batch mode, screenshots/art, metadata sidecars)
-2. Wrap it in a real desktop app for the current release targets: Tauri on
-   Windows + Linux (`.deb` / `.rpm`) packages
-3. Paste-a-URL UI: detect available media, choose All/Latest/pick-some
-4. Downloads default to the OS Downloads folder, overridable in Settings
-5. Add YouTube, TikTok, Instagram, and Facebook downloader modules (via yt-dlp)
-6. Revisit macOS packaging in a later milestone once the Windows/Linux release
+2. Complete packaged Windows/Linux smoke tests and Windows code signing
+3. Add screenshots/key art, metadata sidecars, and batch workflows
+4. Add YouTube, TikTok, Instagram, and Facebook downloader modules via yt-dlp
+5. Revisit macOS packaging in a later milestone once the Windows/Linux release
    path is stabilized
 
 ## Release workflow
@@ -96,7 +94,7 @@ Full detail in [`PLAN.md`](PLAN.md), short version:
 The repo includes GitHub Actions workflows that build release artifacts for the
 current supported platforms:
 
-- Windows: MSI and NSIS installer bundles
+- Windows: MSI installer
 - Linux: `.deb` and `.rpm` packages
 
 See:

@@ -37,7 +37,7 @@ npx tauri build --no-bundle
 For a complete local Windows package check:
 
 ```powershell
-npx tauri build --bundles msi,nsis
+npx tauri build --bundles msi
 ```
 
 Linux packages are built and validated by the Ubuntu GitHub Actions job.
@@ -49,10 +49,10 @@ that exact commit:
 
 ```powershell
 git add --all
-git commit -m "Release 0.1.1"
-git tag -a v0.1.1 -m "Release 0.1.1"
+git commit -m "Release 0.1.3"
+git tag -a v0.1.3 -m "Release 0.1.3"
 git push origin main
-git push origin v0.1.1
+git push origin v0.1.3
 ```
 
 Never move or reuse an already-published release tag. Increment the patch
@@ -62,8 +62,13 @@ version for a correction.
 
 The `Tauri release build` workflow runs separate hosted builds:
 
-- Windows: MSI and NSIS setup executable
+- Windows: MSI installer
 - Linux: Debian `.deb` and RPM packages
+
+MSI is the sole supported Windows installer format. Keep the WiX `upgradeCode`
+in `tauri.conf.json` unchanged across releases so Windows upgrades the existing
+installation instead of creating a second uninstall entry. CI inspects the
+built MSI and rejects version or UpgradeCode drift before artifact upload.
 
 The tag build embeds the GitHub run number as the app build number. After both
 jobs pass, `Publish Tauri release artifacts` downloads artifacts from that exact
@@ -78,7 +83,7 @@ Before sharing a release, confirm:
 1. The tag points to the release commit.
 2. Windows and Linux jobs completed successfully.
 3. The publish workflow completed successfully.
-4. The release contains one current MSI, NSIS EXE, `.deb`, and `.rpm`.
+4. The release contains one current MSI, `.deb`, and `.rpm`.
 5. Package filenames and displayed application version match the tag.
 6. Release notes accurately describe working and placeholder features.
 7. The repository worktree is clean and synchronized with `origin/main`.

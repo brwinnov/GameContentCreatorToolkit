@@ -46,11 +46,17 @@ Living checklist. Move finished items to CHANGELOG.md, don't just delete them.
 - [x] Store trailer downloads in a safe per-game folder (`STM-11`) named
       `<SteamID> <Safe_Game_Name>`, reusing an existing same-ID folder. Rust
       tests cover sanitization, length limits, ID validation, and reuse.
-- [ ] Add the Steam `PASTE` button (`STM-10`): on a user click, read text from
+- [x] Add the Steam `PASTE` button (`STM-10`): on a user click, read text from
       the clipboard into the existing Steam URL/App ID/game-name field. Request
       only clipboard text-read permission; handle empty, denied, and unavailable
-      clipboard states; retain Enter and Find trailers behavior; test in the
-      packaged Windows and Linux apps plus browser preview fallback. **Next up.**
+      clipboard states; retain Enter and Find trailers behavior. Windows dev
+      startup and browser preview syntax are validated; packaged Linux testing
+      remains part of the release matrix.
+- [x] Move Steam history to stable user-local JSON storage and recover the
+      legacy `com.brwinnov.ggt` WebView history before startup. Two existing
+      entries were recovered during the Windows runtime test.
+- [x] Add Windows ffmpeg onboarding: first-steps warnings, verified user-local
+      install, Settings path override, and version display on Home/Settings.
 - [ ] Pick first Phase 1 hardening item (batch mode vs. metadata sidecar vs.
       screenshot/art pulling) and implement.
 

@@ -4,6 +4,123 @@ Add completed tasks directly below this introduction, newest first. Keep each
 entry concise enough for another AI assistant to understand what changed and
 what remains without reading a chat transcript.
 
+## 2026-08-28 - Finalize Model-Neutral Handoff
+
+### Request
+
+Bring all journals and Markdown up to date for switching to Claude Code,
+Claude CLI, another coding app, or a different model, then commit and push.
+
+### Decisions
+
+- Keep `PRE-TASK.md` as the canonical incoming snapshot and `POST-TASK.md` as
+  newest-first history; older entries remain unchanged historical records.
+- Make the handoff self-contained with current architecture, paths, release
+  artifact identity, passed checks, known gaps, and the recommended next task.
+- Keep local MSI artifacts out of Git while documenting their location/hash
+  for another session on this machine.
+
+### Changed
+
+- Corrected stale active claims in root/app READMEs, roadmap, feature backlog,
+  updater plan, release guide, and model-specific/model-neutral instructions.
+- Expanded the canonical handoff for direct use by any replacement assistant.
+
+### Validation
+
+- `cargo fmt --check`: passed.
+- `cargo clippy --all-targets -- -D warnings`: passed.
+- `cargo test`: 6 passed.
+- `node --check app/src/main.js`: passed.
+- Release version gate for `v0.1.3`: passed across npm, lockfile, Tauri,
+  Cargo, and Cargo.lock.
+- Markdown lint: 0 issues across all 19 tracked Markdown files.
+- Local Markdown links: passed across all 19 tracked Markdown files.
+- VS Code diagnostics and targeted diff security scan: passed.
+
+### Remaining Work
+
+- Runtime-test managed ffmpeg installation and the packaged `0.1.3` app on a
+  clean Windows environment; test Linux packages separately.
+- Choose the next Steam hardening item, with metadata sidecars as the smallest
+  foundation-oriented candidate.
+
+## 2026-08-28 - Paste, Durable History, and ffmpeg Setup
+
+### Request
+
+Add the missing Steam clipboard action, retain history across upgrades and
+clean installs, and make ffmpeg setup manageable from the app without admin.
+
+### Decisions
+
+- Read clipboard text only after `PASTE` is clicked.
+- Persist history as JSON under the stable local app-data identifier and copy
+  the legacy `com.brwinnov.ggt` WebView local storage before startup once.
+- Keep ffmpeg outside the MSI under user-local app data. Download BtbN's latest
+  LGPL Windows ZIP only after approval and verify its release SHA-256 manifest.
+- Allow an existing ffmpeg/ffprobe pair to be selected in Settings.
+
+### Changed
+
+- Added Steam `PASTE`, first-steps warnings, and ffmpeg Install/Change controls.
+- Added detected ffmpeg version to the Home status and Settings details.
+- Added backend history load/save, legacy profile migration, persistent ffmpeg
+  settings, managed discovery, bounded download, verification, and extraction.
+
+### Validation
+
+- Rust formatting and strict Clippy passed.
+- Six Rust tests passed, including checksum-manifest and version-line parsing.
+- Frontend syntax and workspace diagnostics passed.
+- Real Tauri dev startup accepted the plugin, capability, and new commands.
+
+### Remaining Work
+
+- Complete a clean Windows runtime test of managed ffmpeg installation.
+- A clean install cannot recover history if the user manually deletes the
+  stable local app-data directory; normal MSI update/uninstall leaves it intact.
+
+## 2026-08-28 - Standardize Windows Installer Format
+
+### Request
+
+Assess the risk of shipping MSI and NSIS together and select one Windows
+installer format.
+
+### Decisions
+
+- Use MSI as the sole Windows installer because the installed `0.1.0` lineage
+  is MSI and `0.1.2` already preserves its verified UpgradeCode.
+- Do not migrate to NSIS for planned auto-updates; a second installer lineage
+  risks duplicate installations and uninstall records.
+- Accept elevation for machine-wide MSI updates and keep updater interaction
+  visible through passive mode.
+
+### Changed
+
+- Removed NSIS from Tauri configuration, CI builds, artifact publishing, and
+  active release documentation.
+- Revised the updater plan around signed MSI upgrades and a permanent
+  UpgradeCode assertion.
+- Added a Windows CI check that opens the built MSI and rejects version or
+  UpgradeCode drift before artifact upload.
+
+### Validation
+
+- Tauri reported the expected UpgradeCode override and built one MSI
+  successfully.
+- Installed `0.1.0` and rebuilt `0.1.2` both report machine-wide scope and
+  UpgradeCode `{1DDF37BF-062F-547C-A167-DAB5D7867081}`; the new MSI has a
+  distinct ProductCode and an upgrade-detection table entry.
+- The local `release/gcc-app-0.1.2` folder contains only the validated MSI.
+- Workflow and Tauri configuration diagnostics reported no errors.
+- All tracked Markdown files passed `markdownlint-cli2`.
+
+### Remaining Work
+
+- Authenticode-sign public installers before broad distribution.
+
 ## 2026-08-28 - Safe Per-Game Trailer Folders
 
 ### Request

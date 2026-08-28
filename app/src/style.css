@@ -377,6 +377,30 @@ button.home-tool:hover {
   font-size: 9px;
 }
 
+.dependency-warning {
+  border: 1px solid #6f5520;
+  border-left: 3px solid var(--amber);
+  border-radius: var(--radius);
+  background: #1d1a13;
+  padding: 14px;
+  margin: 0 0 14px;
+}
+
+.dependency-warning strong {
+  display: block;
+  color: var(--text-primary);
+  font-size: 13px;
+}
+
+.dependency-warning p {
+  margin: 5px 0 12px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.dependency-warning .link-btn { margin-left: 14px; }
+
 .home-footer {
   display: flex;
   align-items: center;
@@ -408,6 +432,8 @@ button.home-tool:hover {
   gap: 10px;
   margin-bottom: 14px;
 }
+
+.input-row input { min-width: 0; }
 
 .input-row.is-disabled { opacity: 0.5; }
 
@@ -476,6 +502,23 @@ input[type="text"]::placeholder { color: var(--text-muted); }
   padding: 0;
 }
 .link-btn:hover { text-decoration: underline; }
+
+.settings-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-shrink: 0;
+}
+
+.settings-tool-version {
+  color: var(--green);
+  margin-bottom: 3px;
+}
+
+@media (max-width: 720px) {
+  .input-row { flex-wrap: wrap; }
+  .input-row input { flex-basis: 100%; }
+}
 
 .status-line {
   font-family: var(--font-mono);

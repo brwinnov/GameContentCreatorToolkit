@@ -34,7 +34,11 @@ if (hasTauri) {
     }
     if (cmd === "get_default_download_dir") return "C:\\Users\\barry\\Downloads";
     if (cmd === "pick_folder") return "G:\\1_Presskit";
-    if (cmd === "find_ffmpeg") return "F:\\ffmpeg\\bin\\ffmpeg.exe";
+    if (cmd === "find_ffmpeg") return { path: "F:\\ffmpeg\\bin\\ffmpeg.exe", version: "N-120041-g64fce7202c-20250626" };
+    if (cmd === "load_history") return [];
+    if (cmd === "save_history") return null;
+    if (cmd === "set_ffmpeg_path") return { path: args.path, version: "N-120041-g64fce7202c-20250626" };
+    if (cmd === "install_ffmpeg") return { path: "C:\\Users\\barry\\AppData\\Local\\com.ackrosgaming.gcc\\tools\\ffmpeg\\bin\\ffmpeg.exe", version: "N-120041-g64fce7202c-20250626" };
     if (cmd === "get_app_metadata") {
       return { version: "0.1.1", build: "preview", creator: "Barry Reilly / AckrosGaming" };
     }
@@ -99,6 +103,7 @@ invoke("get_app_metadata").then((metadata) => {
 // ── Steam tab ────────────────────────────────────────────────────────────
 
 const steamInput = document.getElementById("steam-input");
+const steamPasteBtn = document.getElementById("steam-paste");
 const steamFetchBtn = document.getElementById("steam-fetch");
 const steamNameResults = document.getElementById("steam-name-results");
 const steamStatus = document.getElementById("steam-status");
@@ -127,7 +132,7 @@ let currentTrailers = [];
 let outputDir = null;
 let currentDownloadName = null;
 
-// ── History (persisted in localStorage — survives app restarts) ────────────
+// ── History (backend JSON, with one-time localStorage migration) ───────────
 
 const HISTORY_KEY = "ggt-steam-history";
 const HISTORY_LIMIT = 200; // keep the log from growing unbounded
@@ -142,9 +147,41 @@ function loadHistory() {
 }
 
 let history = loadHistory();
+let historySave = Promise.resolve();
+
+async function hydrateHistory() {
+  if (!hasTauri) {
+    updateHomeActivity();
+    return;
+  }
+  try {
+    const durableHistory = await invoke("load_history");
+    const merged = new Map();
+    [...durableHistory, ...history].forEach((entry) => {
+      merged.set(JSON.stringify(entry), entry);
+    });
+    history = [...merged.values()]
+      .sort((left, right) => String(left.ts).localeCompare(String(right.ts)))
+      .slice(-HISTORY_LIMIT);
+    await invoke("save_history", { history });
+    localStorage.removeItem(HISTORY_KEY);
+  } catch (error) {
+    console.error("Could not load durable history:", error);
+  }
+  updateHomeActivity();
+}
 
 function saveHistory() {
-  localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+  if (hasTauri) {
+    const snapshot = [...history];
+    historySave = historySave
+      .then(() => invoke("save_history", { history: snapshot }))
+      .catch((error) => {
+        console.error("Could not save durable history:", error);
+      });
+  } else {
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+  }
 }
 
 function pushHistory(entry) {
@@ -164,7 +201,7 @@ function updateHomeActivity() {
   const last = new Date(history[history.length - 1].ts).toLocaleDateString();
   activity.textContent = `${history.length} event${history.length === 1 ? "" : "s"} / last ${last}`;
 }
-updateHomeActivity();
+hydrateHistory();
 
 function renderHistory() {
   if (!history.length) {
@@ -229,13 +266,62 @@ async function initOutputDir() {
 }
 initOutputDir();
 
-invoke("find_ffmpeg").then((path) => {
+let ffmpegInfo = null;
+
+function updateFfmpegStatus(info) {
+  ffmpegInfo = info;
   const el = document.getElementById("settings-ffmpeg-path");
-  el.textContent = path || "Not found — install ffmpeg and restart the app";
+  el.textContent = info?.path || "Not found";
+  document.getElementById("settings-ffmpeg-version").textContent = info
+    ? `Version ${info.version}`
+    : "";
   const homeStatus = document.getElementById("home-ffmpeg-status");
-  homeStatus.innerHTML = path
-    ? '<span class="status-dot is-ready"></span>ffmpeg detected'
+  homeStatus.innerHTML = info
+    ? `<span class="status-dot is-ready"></span>ffmpeg ${escapeHtml(info.version)}`
     : '<span class="status-dot is-warning"></span>ffmpeg required';
+  document.getElementById("home-ffmpeg-warning").hidden = Boolean(info);
+  document.getElementById("steam-ffmpeg-warning").hidden = Boolean(info);
+}
+
+invoke("find_ffmpeg").then(updateFfmpegStatus);
+
+async function installFfmpeg() {
+  const buttons = [...document.querySelectorAll(".install-ffmpeg")];
+  buttons.forEach((button) => {
+    button.disabled = true;
+    button.textContent = "Downloading and verifying...";
+  });
+  try {
+    const path = await invoke("install_ffmpeg");
+    updateFfmpegStatus(path);
+  } catch (error) {
+    updateFfmpegStatus(ffmpegInfo);
+    document.getElementById("settings-ffmpeg-path").textContent = String(error);
+  } finally {
+    buttons.forEach((button) => {
+      button.disabled = false;
+      button.textContent = button.closest(".dependency-warning") ? "Install ffmpeg" : "Install";
+    });
+  }
+}
+
+document.querySelectorAll(".install-ffmpeg").forEach((button) => {
+  button.addEventListener("click", installFfmpeg);
+});
+
+document.getElementById("settings-change-ffmpeg").addEventListener("click", async () => {
+  const picked = hasTauri
+    ? await window.__TAURI__.dialog.open({
+        multiple: false,
+        filters: [{ name: "ffmpeg executable", extensions: ["exe"] }],
+      })
+    : "F:\\ffmpeg\\bin\\ffmpeg.exe";
+  if (!picked) return;
+  try {
+    updateFfmpegStatus(await invoke("set_ffmpeg_path", { path: picked }));
+  } catch (error) {
+    document.getElementById("settings-ffmpeg-path").textContent = String(error);
+  }
 });
 
 steamChangeDir.addEventListener("click", async () => {
@@ -253,6 +339,21 @@ document.getElementById("settings-change-dir").addEventListener("click", () => s
 
 steamFetchBtn.addEventListener("click", fetchTrailers);
 steamInput.addEventListener("keydown", (e) => { if (e.key === "Enter") fetchTrailers(); });
+steamPasteBtn.addEventListener("click", async () => {
+  try {
+    const text = hasTauri
+      ? await window.__TAURI__.clipboardManager.readText()
+      : await navigator.clipboard.readText();
+    if (!text?.trim()) throw new Error("The clipboard does not contain text.");
+    steamInput.value = text.trim();
+    steamInput.focus();
+    steamStatus.textContent = "Pasted from clipboard. Click Find trailers when ready.";
+    steamStatus.className = "status-line is-success";
+  } catch (error) {
+    steamStatus.textContent = `Could not paste: ${error}`;
+    steamStatus.className = "status-line is-error";
+  }
+});
 
 function renderSteamNameMatches(matches) {
   steamNameResults.hidden = false;

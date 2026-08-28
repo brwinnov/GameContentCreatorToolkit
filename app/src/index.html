@@ -121,6 +121,12 @@
             </div>
           </dl>
 
+          <div class="dependency-warning" id="home-ffmpeg-warning" hidden>
+            <strong>First step: install ffmpeg</strong>
+            <p>Steam trailer downloads need ffmpeg and ffprobe.</p>
+            <button class="btn btn-primary install-ffmpeg" type="button">Install for me</button>
+          </div>
+
           <p class="home-tip"><span>TIP</span> Start with a Steam store URL, App ID, or game name. Existing files are skipped safely.</p>
         </aside>
       </div>
@@ -140,7 +146,15 @@
 
       <div class="input-row">
         <input type="text" id="steam-input" placeholder="Steam URL, App ID, or game name like No Man's Sky" />
+        <button class="btn btn-ghost" id="steam-paste" type="button">Paste</button>
         <button class="btn btn-accent" id="steam-fetch">Find trailers</button>
+      </div>
+
+      <div class="dependency-warning" id="steam-ffmpeg-warning" hidden>
+        <strong>ffmpeg is required before downloading</strong>
+        <p>Install a verified user-local copy, or choose an existing ffmpeg executable in Settings.</p>
+        <button class="btn btn-primary install-ffmpeg" type="button">Install ffmpeg</button>
+        <button class="link-btn" type="button" data-open-tab="settings">Open Settings</button>
       </div>
 
       <div class="search-results" id="steam-name-results" hidden></div>
@@ -263,7 +277,12 @@
       <div class="settings-row">
         <div>
           <div class="settings-label">ffmpeg</div>
+          <div class="settings-value settings-tool-version" id="settings-ffmpeg-version"></div>
           <div class="settings-value" id="settings-ffmpeg-path">Detecting…</div>
+        </div>
+        <div class="settings-actions">
+          <button class="link-btn install-ffmpeg" type="button">Install</button>
+          <button class="link-btn" id="settings-change-ffmpeg" type="button">Change</button>
         </div>
       </div>
     </section>

@@ -28,7 +28,7 @@ jobs:
       - name: Prepare release directory
         run: |
           mkdir -p release-payload
-          find release-artifacts -type f \( -iname "*.msi" -o -iname "*.exe" -o -iname "*.deb" -o -iname "*.rpm" \) -exec cp {} release-payload/ \;
+          find release-artifacts -type f \( -iname "*.msi" -o -iname "*.deb" -o -iname "*.rpm" \) -exec cp {} release-payload/ \;
           ls -l release-payload
 
       - name: Create GitHub release

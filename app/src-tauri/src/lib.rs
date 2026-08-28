@@ -1,8 +1,23 @@
 use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
+use std::fs::File;
 use std::path::{Path, PathBuf};
 use std::process::Stdio;
-use tauri::{AppHandle, Emitter};
+use tauri::{AppHandle, Emitter, Manager};
 use tokio::io::{AsyncBufReadExt, BufReader};
+
+const HISTORY_FILE: &str = "steam-history.json";
+const SETTINGS_FILE: &str = "settings.json";
+const MAX_FFMPEG_ARCHIVE_BYTES: u64 = 250 * 1024 * 1024;
+const MAX_FFMPEG_TOOL_BYTES: u64 = 200 * 1024 * 1024;
+
+#[cfg(target_os = "windows")]
+const FFMPEG_ARCHIVE_NAME: &str = "ffmpeg-master-latest-win64-lgpl.zip";
+#[cfg(target_os = "windows")]
+const FFMPEG_ARCHIVE_URL: &str = "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-lgpl.zip";
+#[cfg(target_os = "windows")]
+const FFMPEG_CHECKSUMS_URL: &str =
+    "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/checksums.sha256";
 
 #[cfg(windows)]
 const CREATE_NO_WINDOW: u32 = 0x08000000;
@@ -10,6 +25,14 @@ const CREATE_NO_WINDOW: u32 = 0x08000000;
 fn configure_hidden_process(command: &mut tokio::process::Command) {
     #[cfg(windows)]
     {
+        command.creation_flags(CREATE_NO_WINDOW);
+    }
+}
+
+fn configure_hidden_std_process(command: &mut std::process::Command) {
+    #[cfg(windows)]
+    {
+        use std::os::windows::process::CommandExt;
         command.creation_flags(CREATE_NO_WINDOW);
     }
 }
@@ -55,6 +78,19 @@ pub struct AppMetadata {
 
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
+pub struct FfmpegInfo {
+    path: String,
+    version: String,
+}
+
+#[derive(Debug, Default, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct AppSettings {
+    ffmpeg_path: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
 struct ProgressEvent {
     tag: String,
     message: String,
@@ -86,6 +122,117 @@ fn get_app_metadata() -> AppMetadata {
             .unwrap_or("local"),
         creator: "Barry Reilly / AckrosGaming",
     }
+}
+
+fn app_data_file(app: &AppHandle, name: &str) -> Result<PathBuf, String> {
+    app.path()
+        .app_local_data_dir()
+        .map(|directory| directory.join(name))
+        .map_err(|error| format!("Could not resolve the app data folder: {error}"))
+}
+
+fn write_json_atomic<T: Serialize>(path: &Path, value: &T) -> Result<(), String> {
+    let parent = path
+        .parent()
+        .ok_or_else(|| "App data file has no parent folder.".to_string())?;
+    std::fs::create_dir_all(parent)
+        .map_err(|error| format!("Could not create the app data folder: {error}"))?;
+    let temporary = path.with_extension("tmp");
+    let data = serde_json::to_vec_pretty(value)
+        .map_err(|error| format!("Could not serialize app data: {error}"))?;
+    std::fs::write(&temporary, data)
+        .map_err(|error| format!("Could not write app data: {error}"))?;
+    if path.exists() {
+        std::fs::remove_file(path)
+            .map_err(|error| format!("Could not replace app data: {error}"))?;
+    }
+    std::fs::rename(&temporary, path).map_err(|error| format!("Could not save app data: {error}"))
+}
+
+fn copy_directory(source: &Path, destination: &Path) -> std::io::Result<()> {
+    std::fs::create_dir_all(destination)?;
+    for entry in std::fs::read_dir(source)? {
+        let entry = entry?;
+        let destination_path = destination.join(entry.file_name());
+        if entry.file_type()?.is_dir() {
+            copy_directory(&entry.path(), &destination_path)?;
+        } else {
+            std::fs::copy(entry.path(), destination_path)?;
+        }
+    }
+    Ok(())
+}
+
+#[cfg(target_os = "windows")]
+fn migrate_legacy_webview_data() {
+    let Some(local_data) = dirs::data_local_dir() else {
+        return;
+    };
+    let current_root = local_data.join("com.ackrosgaming.gcc");
+    let marker = current_root.join("legacy-webview-migration-v1.complete");
+    let history_file = current_root.join(HISTORY_FILE);
+    let durable_history_has_entries = std::fs::read(&history_file)
+        .ok()
+        .and_then(|data| serde_json::from_slice::<Vec<serde_json::Value>>(&data).ok())
+        .map(|history| !history.is_empty())
+        .unwrap_or(false);
+    let legacy_storage = local_data
+        .join("com.brwinnov.ggt")
+        .join("EBWebView")
+        .join("Default")
+        .join("Local Storage");
+    let current_storage = current_root
+        .join("EBWebView")
+        .join("Default")
+        .join("Local Storage");
+
+    if marker.exists() || durable_history_has_entries || !legacy_storage.is_dir() {
+        return;
+    }
+
+    if current_storage.exists() {
+        let backup = current_storage.with_file_name("Local Storage.before-legacy-migration");
+        if backup.exists() {
+            let _ = std::fs::remove_dir_all(&backup);
+        }
+        if std::fs::rename(&current_storage, &backup).is_err() {
+            return;
+        }
+    }
+
+    if copy_directory(&legacy_storage, &current_storage).is_ok() {
+        let _ = std::fs::write(
+            marker,
+            b"Legacy localStorage copied before WebView startup.\n",
+        );
+    }
+}
+
+#[cfg(not(target_os = "windows"))]
+fn migrate_legacy_webview_data() {}
+
+fn load_settings(app: &AppHandle) -> AppSettings {
+    app_data_file(app, SETTINGS_FILE)
+        .ok()
+        .and_then(|path| std::fs::read(path).ok())
+        .and_then(|data| serde_json::from_slice(&data).ok())
+        .unwrap_or_default()
+}
+
+#[tauri::command]
+fn load_history(app: AppHandle) -> Result<Vec<serde_json::Value>, String> {
+    let path = app_data_file(&app, HISTORY_FILE)?;
+    match std::fs::read(path) {
+        Ok(data) => serde_json::from_slice(&data)
+            .map_err(|error| format!("Could not read download history: {error}")),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(Vec::new()),
+        Err(error) => Err(format!("Could not read download history: {error}")),
+    }
+}
+
+#[tauri::command]
+fn save_history(app: AppHandle, history: Vec<serde_json::Value>) -> Result<(), String> {
+    write_json_atomic(&app_data_file(&app, HISTORY_FILE)?, &history)
 }
 
 // ── Steam appdetails lookup ──────────────────────────────────────────────
@@ -266,7 +413,52 @@ fn ffmpeg_candidates() -> Vec<PathBuf> {
     }
 }
 
-fn find_ffmpeg_path() -> Option<String> {
+fn valid_ffmpeg_path(path: &Path) -> bool {
+    path.is_file()
+        && path
+            .file_name()
+            .and_then(|name| name.to_str())
+            .map(|name| {
+                name.eq_ignore_ascii_case(if cfg!(windows) {
+                    "ffmpeg.exe"
+                } else {
+                    "ffmpeg"
+                })
+            })
+            .unwrap_or(false)
+}
+
+fn managed_ffmpeg_path(app: &AppHandle) -> Option<PathBuf> {
+    app.path()
+        .app_local_data_dir()
+        .ok()
+        .map(|directory| {
+            directory
+                .join("tools")
+                .join("ffmpeg")
+                .join("bin")
+                .join(if cfg!(windows) {
+                    "ffmpeg.exe"
+                } else {
+                    "ffmpeg"
+                })
+        })
+        .filter(|path| valid_ffmpeg_path(path))
+}
+
+fn find_ffmpeg_path(app: &AppHandle) -> Option<String> {
+    if let Some(path) = load_settings(app)
+        .ffmpeg_path
+        .map(PathBuf::from)
+        .filter(|path| valid_ffmpeg_path(path))
+    {
+        return Some(path.display().to_string());
+    }
+
+    if let Some(path) = managed_ffmpeg_path(app) {
+        return Some(path.display().to_string());
+    }
+
     // 1. Is it on PATH?
     let on_path = std::process::Command::new(if cfg!(windows) { "where" } else { "which" })
         .arg("ffmpeg")
@@ -288,9 +480,207 @@ fn find_ffmpeg_path() -> Option<String> {
         .map(|p| p.display().to_string())
 }
 
+fn parse_ffmpeg_version(output: &str) -> Option<String> {
+    output.lines().find_map(|line| {
+        line.trim()
+            .strip_prefix("ffmpeg version ")
+            .and_then(|remainder| remainder.split_whitespace().next())
+            .filter(|version| !version.is_empty())
+            .map(str::to_string)
+    })
+}
+
+fn ffmpeg_info(path: String) -> FfmpegInfo {
+    let mut command = std::process::Command::new(&path);
+    configure_hidden_std_process(&mut command);
+    let version = command
+        .arg("-version")
+        .output()
+        .ok()
+        .filter(|output| output.status.success())
+        .and_then(|output| {
+            parse_ffmpeg_version(&String::from_utf8_lossy(&output.stdout))
+                .or_else(|| parse_ffmpeg_version(&String::from_utf8_lossy(&output.stderr)))
+        })
+        .unwrap_or_else(|| "unknown".to_string());
+    FfmpegInfo { path, version }
+}
+
 #[tauri::command]
-fn find_ffmpeg() -> Option<String> {
-    find_ffmpeg_path()
+fn find_ffmpeg(app: AppHandle) -> Option<FfmpegInfo> {
+    find_ffmpeg_path(&app).map(ffmpeg_info)
+}
+
+#[tauri::command]
+fn set_ffmpeg_path(app: AppHandle, path: Option<String>) -> Result<Option<FfmpegInfo>, String> {
+    let normalized = match path {
+        Some(value) => {
+            let candidate = PathBuf::from(value);
+            if !valid_ffmpeg_path(&candidate) {
+                return Err("Choose the ffmpeg executable, not its folder.".to_string());
+            }
+            let ffprobe = candidate.with_file_name(if cfg!(windows) {
+                "ffprobe.exe"
+            } else {
+                "ffprobe"
+            });
+            if !ffprobe.is_file() {
+                return Err("ffprobe must be in the same folder as ffmpeg.".to_string());
+            }
+            Some(candidate.display().to_string())
+        }
+        None => None,
+    };
+    write_json_atomic(
+        &app_data_file(&app, SETTINGS_FILE)?,
+        &AppSettings {
+            ffmpeg_path: normalized.clone(),
+        },
+    )?;
+    Ok(normalized.map(ffmpeg_info))
+}
+
+fn expected_checksum(manifest: &str, archive_name: &str) -> Option<String> {
+    manifest.lines().find_map(|line| {
+        let mut fields = line.split_whitespace();
+        let checksum = fields.next()?;
+        let filename = fields.next()?.trim_start_matches('*');
+        (filename == archive_name
+            && checksum.len() == 64
+            && checksum
+                .chars()
+                .all(|character| character.is_ascii_hexdigit()))
+        .then(|| checksum.to_ascii_lowercase())
+    })
+}
+
+#[cfg(target_os = "windows")]
+fn extract_ffmpeg_tools(archive_path: &Path, destination: &Path) -> Result<(), String> {
+    let file = File::open(archive_path)
+        .map_err(|error| format!("Could not open the ffmpeg archive: {error}"))?;
+    let mut archive =
+        zip::ZipArchive::new(file).map_err(|error| format!("Invalid ffmpeg ZIP: {error}"))?;
+    std::fs::create_dir_all(destination)
+        .map_err(|error| format!("Could not create the ffmpeg folder: {error}"))?;
+
+    for tool in ["ffmpeg.exe", "ffprobe.exe"] {
+        let index = (0..archive.len())
+            .find(|index| {
+                archive
+                    .by_index(*index)
+                    .ok()
+                    .and_then(|entry| entry.enclosed_name())
+                    .and_then(|path| path.file_name().map(|name| name.to_owned()))
+                    .and_then(|name| name.to_str().map(str::to_owned))
+                    .map(|name| name.eq_ignore_ascii_case(tool))
+                    .unwrap_or(false)
+            })
+            .ok_or_else(|| format!("The ffmpeg archive does not contain {tool}."))?;
+        let mut entry = archive
+            .by_index(index)
+            .map_err(|error| format!("Could not read {tool} from the archive: {error}"))?;
+        if entry.size() > MAX_FFMPEG_TOOL_BYTES {
+            return Err(format!("{tool} exceeds the safe extraction size limit."));
+        }
+        let mut output = File::create(destination.join(tool))
+            .map_err(|error| format!("Could not create {tool}: {error}"))?;
+        std::io::copy(&mut entry, &mut output)
+            .map_err(|error| format!("Could not extract {tool}: {error}"))?;
+    }
+    Ok(())
+}
+
+#[tauri::command]
+async fn install_ffmpeg(app: AppHandle) -> Result<FfmpegInfo, String> {
+    #[cfg(not(target_os = "windows"))]
+    return Err(
+        "Automatic ffmpeg installation is currently available on Windows only.".to_string(),
+    );
+
+    #[cfg(target_os = "windows")]
+    {
+        let app_data = app
+            .path()
+            .app_local_data_dir()
+            .map_err(|error| format!("Could not resolve the app data folder: {error}"))?;
+        let tools_dir = app_data.join("tools").join("ffmpeg");
+        let archive_path = tools_dir.join(FFMPEG_ARCHIVE_NAME);
+        let bin_dir = tools_dir.join("bin");
+        tokio::fs::create_dir_all(&tools_dir)
+            .await
+            .map_err(|error| format!("Could not create the ffmpeg folder: {error}"))?;
+
+        let client = reqwest::Client::builder()
+            .user_agent("GCCtoolkit ffmpeg installer")
+            .build()
+            .map_err(|error| format!("Could not initialize the downloader: {error}"))?;
+        let manifest = client
+            .get(FFMPEG_CHECKSUMS_URL)
+            .send()
+            .await
+            .and_then(reqwest::Response::error_for_status)
+            .map_err(|error| format!("Could not download ffmpeg checksums: {error}"))?
+            .text()
+            .await
+            .map_err(|error| format!("Could not read ffmpeg checksums: {error}"))?;
+        let expected = expected_checksum(&manifest, FFMPEG_ARCHIVE_NAME).ok_or_else(|| {
+            "The checksum manifest does not list the Windows ffmpeg ZIP.".to_string()
+        })?;
+
+        let mut response = client
+            .get(FFMPEG_ARCHIVE_URL)
+            .send()
+            .await
+            .and_then(reqwest::Response::error_for_status)
+            .map_err(|error| format!("Could not download ffmpeg: {error}"))?;
+        if response
+            .content_length()
+            .is_some_and(|length| length > MAX_FFMPEG_ARCHIVE_BYTES)
+        {
+            return Err("The ffmpeg archive exceeds the safe download size limit.".to_string());
+        }
+        let mut archive_file = tokio::fs::File::create(&archive_path)
+            .await
+            .map_err(|error| format!("Could not create the ffmpeg archive: {error}"))?;
+        let mut hasher = Sha256::new();
+        let mut downloaded_bytes = 0u64;
+        while let Some(chunk) = response
+            .chunk()
+            .await
+            .map_err(|error| format!("ffmpeg download failed: {error}"))?
+        {
+            downloaded_bytes += chunk.len() as u64;
+            if downloaded_bytes > MAX_FFMPEG_ARCHIVE_BYTES {
+                drop(archive_file);
+                let _ = tokio::fs::remove_file(&archive_path).await;
+                return Err("The ffmpeg archive exceeds the safe download size limit.".to_string());
+            }
+            hasher.update(&chunk);
+            tokio::io::AsyncWriteExt::write_all(&mut archive_file, &chunk)
+                .await
+                .map_err(|error| format!("Could not save ffmpeg: {error}"))?;
+        }
+        tokio::io::AsyncWriteExt::flush(&mut archive_file)
+            .await
+            .map_err(|error| format!("Could not finish saving ffmpeg: {error}"))?;
+        drop(archive_file);
+
+        let actual = format!("{:x}", hasher.finalize());
+        if actual != expected {
+            let _ = tokio::fs::remove_file(&archive_path).await;
+            return Err("The ffmpeg download failed SHA-256 verification.".to_string());
+        }
+
+        let archive_for_task = archive_path.clone();
+        let bin_for_task = bin_dir.clone();
+        tokio::task::spawn_blocking(move || extract_ffmpeg_tools(&archive_for_task, &bin_for_task))
+            .await
+            .map_err(|error| format!("ffmpeg extraction task failed: {error}"))??;
+        let _ = tokio::fs::remove_file(&archive_path).await;
+
+        set_ffmpeg_path(app, Some(bin_dir.join("ffmpeg.exe").display().to_string()))?
+            .ok_or_else(|| "ffmpeg installation did not produce an executable.".to_string())
+    }
 }
 
 // ── ffprobe (for progress %) ────────────────────────────────────────────
@@ -436,7 +826,9 @@ fn game_download_dir(output_dir: &Path, app_id: &str, game_name: &str) -> Result
 
 #[cfg(test)]
 mod tests {
-    use super::{game_download_dir, safe_game_folder_name};
+    use super::{
+        expected_checksum, game_download_dir, parse_ffmpeg_version, safe_game_folder_name,
+    };
     use std::path::Path;
 
     #[test]
@@ -447,6 +839,32 @@ mod tests {
         );
         assert_eq!(safe_game_folder_name("???"), "Steam_Game");
         assert_eq!(safe_game_folder_name(&"A".repeat(150)).len(), 100);
+    }
+
+    #[test]
+    fn reads_exact_ffmpeg_checksum_entry() {
+        let checksum = "a".repeat(64);
+        let manifest = format!(
+            "{}  other.zip\n{} *ffmpeg-master-latest-win64-lgpl.zip\n",
+            "b".repeat(64),
+            checksum
+        );
+
+        assert_eq!(
+            expected_checksum(&manifest, "ffmpeg-master-latest-win64-lgpl.zip"),
+            Some(checksum)
+        );
+        assert_eq!(expected_checksum("invalid file.zip", "file.zip"), None);
+    }
+
+    #[test]
+    fn reads_ffmpeg_version_token() {
+        let output = "notice\nffmpeg version N-120041-g64fce7202c-20250626 Copyright\n";
+        assert_eq!(
+            parse_ffmpeg_version(output),
+            Some("N-120041-g64fce7202c-20250626".to_string())
+        );
+        assert_eq!(parse_ffmpeg_version("no version here"), None);
     }
 
     #[test]
@@ -496,8 +914,8 @@ async fn download_trailers(
     output_dir: String,
     trailers: Vec<TrailerInfo>,
 ) -> Result<DownloadSummary, String> {
-    let ffmpeg = find_ffmpeg_path().ok_or_else(|| {
-        "ffmpeg not found. Install it (winget/scoop/choco/brew) or check Settings.".to_string()
+    let ffmpeg = find_ffmpeg_path(&app).ok_or_else(|| {
+        "ffmpeg not found. Install it from Getting Started or choose it in Settings.".to_string()
     })?;
 
     let output_root = Path::new(&output_dir);
@@ -670,13 +1088,19 @@ async fn download_trailers(
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    migrate_legacy_webview_data();
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_clipboard_manager::init())
         .invoke_handler(tauri::generate_handler![
             get_app_metadata,
+            load_history,
+            save_history,
             fetch_steam_trailers,
             search_steam_games_by_name,
             find_ffmpeg,
+            set_ffmpeg_path,
+            install_ffmpeg,
             get_default_download_dir,
             download_trailers,
         ])

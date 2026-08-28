@@ -100,14 +100,13 @@ current worktree because source code and Git history remain authoritative.
 - Release claims require verification against the tag, originating commit, CI
   run, and published assets.
 
-## Current Release Candidate
+## Current Release
 
-- Version sources agree on `0.1.4`.
-- Local Windows MSI:
-  `app/src-tauri/target/release/bundle/msi/GCCtoolkit_0.1.4_x64_en-US.msi`
-  (ignored by Git).
-- Local MSI SHA-256:
-  `A7644B27358D7FAA2802F3FF0F49ECFB2F949B48F6941585E9AE298028FD431B`.
+- Version `0.1.4` is published from tag `v0.1.4` and commit `c491276`.
+- The release contains one Windows MSI, Linux DEB, Linux RPM, and
+  `SHA256SUMS`; all downloaded assets passed checksum verification.
+- Published MSI SHA-256:
+  `D33671B0F4798C1B6C5D5B28573FD2EEF7CC75ED447A88C9412D0AFD52648325`.
 - MSI is machine-wide and retains UpgradeCode
   `{1DDF37BF-062F-547C-A167-DAB5D7867081}`.
 - Six Rust tests, strict Clippy, Rust formatting, frontend syntax, tracked

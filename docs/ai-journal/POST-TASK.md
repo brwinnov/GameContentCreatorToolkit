@@ -30,6 +30,10 @@ application is pending, to build public usage and project reputation.
 - Official Actionlint `v1.7.12` passed both release workflows.
 - All tracked Markdown, diff whitespace, and the `v0.1.4` release-version gate
   passed; repository variable `SIGNPATH_ENABLED` is explicitly `false`.
+- Tagged build `33139352222` and publisher `33139709050` passed. Release
+  `v0.1.4` contains one MSI, DEB, RPM, and checksum manifest.
+- Downloaded release assets matched `SHA256SUMS`; the MSI has ProductVersion
+  `0.1.4`, the pinned UpgradeCode, and the disclosed unsigned status.
 
 ### Remaining
 

@@ -16,6 +16,9 @@ All notable changes to this project. Format loosely follows
 
 ### Changed
 
+- Temporarily permit tagged unsigned preview installers while the submitted
+  SignPath application is pending; release notes warn users and checksums remain
+  mandatory. Setting `SIGNPATH_ENABLED=true` restores fail-closed signing.
 - Removed redundant Open Steam downloader and Settings buttons from the Home
   introduction; navigation and the Steam workflow card remain available.
 - Replaced the Steam input's text Paste and Find trailers buttons with compact

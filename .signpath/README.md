@@ -39,12 +39,14 @@ signing as Advanced-only, so no unsupported DEB configuration is included.
 7. Add the organization ID as repository variable
    `SIGNPATH_ORGANIZATION_ID` and the token as repository secret
    `SIGNPATH_API_TOKEN`.
-8. Confirm GitHub-hosted runners, artifact origin verification, manual approval,
+8. Set repository variable `SIGNPATH_ENABLED` to `true`.
+9. Confirm GitHub-hosted runners, artifact origin verification, manual approval,
    signed MSI download, and CI signature verification with a test tag.
 
-Tagged Windows builds fail at the signing step until these resources exist.
-Ordinary `main` builds remain unsigned validation artifacts and are never
-published as releases.
+While `SIGNPATH_ENABLED` is not `true`, tagged builds publish an explicitly
+labeled unsigned MSI with checksums. Once enabled, tagged Windows builds fail
+closed unless SignPath returns a valid timestamped MSI. Ordinary `main` builds
+remain unsigned validation artifacts and are never published as releases.
 
 ## Human-Controlled Requirements
 

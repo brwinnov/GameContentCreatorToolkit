@@ -11,7 +11,7 @@ the bracketed human-supplied fields before submission.
 | Download URL | <https://github.com/brwinnov/GameContentCreatorToolkit/blob/main/docs/DOWNLOADS.md> |
 | Privacy policy URL | <https://github.com/brwinnov/GameContentCreatorToolkit/blob/main/docs/PRIVACY.md> |
 | Wikipedia URL | Not applicable |
-| Tagline | A desktop toolkit that downloads official game media for content-creation workflows. |
+| Tagline | A desktop toolkit that downloads official game media for content-creation workflows for Content Creators. |
 | Maintainer type | Individual maintainer(s) |
 | Build system | GitHub Actions |
 | First name | Barry |

@@ -13,10 +13,11 @@ The project uses free code signing provided by
 GitHub Actions from this repository and manually approved under the project's
 [code signing policy](CODE_SIGNING_POLICY.md).
 
-Until the SignPath Foundation application and integration are accepted, a
-release without a valid signature must be treated as unsigned. The release
-workflow is configured to prevent new tagged releases when Windows signing is
-unavailable.
+The SignPath Foundation application has been submitted and is pending. Until
+the integration is accepted and activated, preview releases are published as
+unsigned and their release notes state that clearly. Windows may display an
+Unknown Publisher warning. Download only from this repository and verify the
+published checksum before running an unsigned installer.
 
 ## Verification
 
@@ -30,6 +31,11 @@ Get-FileHash -Algorithm SHA256 .\GCCtoolkit_*.msi
 For signed Windows releases, open the MSI's **Digital Signatures** properties
 or run Windows SDK `signtool verify /pa /all /v <installer.msi>`. Require a
 valid timestamped signature issued to SignPath Foundation.
+
+For an explicitly unsigned preview release, confirm that its release notes say
+unsigned and verify `SHA256SUMS`. A checksum detects download corruption and
+supports comparison with this repository's release, but it is not a publisher
+signature and does not provide the same protection as Authenticode.
 
 ## System Changes and Uninstallation
 

@@ -132,6 +132,10 @@ configuration are accepted. Free code signing provided by
 [SignPath Foundation](https://signpath.org/). Releases are built from this
 repository and each signing request requires manual approval.
 
+While the submitted application is pending, preview releases are explicitly
+labeled unsigned. Windows may show an Unknown Publisher warning; download only
+from this repository and verify the published `SHA256SUMS` manifest.
+
 - Committer and reviewer: [Barry Reilly (@brwinnov)](https://github.com/brwinnov)
 - Approver: [Barry Reilly (@brwinnov)](https://github.com/brwinnov)
 - Full policy: [`docs/CODE_SIGNING_POLICY.md`](docs/CODE_SIGNING_POLICY.md)

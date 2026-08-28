@@ -48,9 +48,10 @@ current worktree because source code and Git history remain authoritative.
 - The 2026-08-28 source security audit found 0 critical, 2 high, 5 medium, and
   2 low issues. See `docs/SECURITYAUDIT.md` for evidence and remediation tasks.
 - The repository is MIT-licensed. SignPath Foundation application answers,
-  artifact configurations, code-signing/privacy/download policies, fail-closed
+  artifact configurations, code-signing/privacy/download policies, conditional
   tagged MSI submission, signature verification, and release checksums are
-  prepared. Acceptance and dashboard/repository credential setup remain.
+  prepared. The application is submitted; acceptance and dashboard/repository
+  credential setup remain.
 - Security remediation now precedes feature work: fix the deprecated Bash App
   ID code-injection path (`SEC-001`), then implement release signing
   (`SEC-002`) before broad distribution.
@@ -67,8 +68,9 @@ current worktree because source code and Git history remain authoritative.
   capture are out of scope.
 - Project-owned source is distributed under MIT. Third-party components retain
   their own licenses and must not be signed as project-owned binaries.
-- Tagged Windows releases must pass SignPath manual approval and timestamped
-  signature verification. Main-branch validation builds remain unsigned.
+- Tagged Windows releases are explicitly labeled unsigned while repository
+  variable `SIGNPATH_ENABLED` is not `true`. After SignPath setup, set it to
+  `true` to require manual approval and timestamped signature verification.
 - SignPath's free OSS tier documents RPM signing but not DEB signing; do not
   claim signed Linux packages until each format has a verified implementation.
 - Clipboard reads must occur only after a user clicks `PASTE` and should request
@@ -110,9 +112,9 @@ current worktree because source code and Git history remain authoritative.
   `{1DDF37BF-062F-547C-A167-DAB5D7867081}`.
 - Six Rust tests, strict Clippy, Rust formatting, frontend syntax, tracked
   Markdown lint, release version gate, and MSI build/identity checks passed.
-- The local MSI is unsigned. Do not create `v0.1.4` until SignPath Foundation
-  accepts the project and `SIGNPATH_ORGANIZATION_ID` plus
-  `SIGNPATH_API_TOKEN` are configured; tagged publication fails closed.
+- The SignPath application is submitted. Repository variable
+  `SIGNPATH_ENABLED=false` temporarily permits clearly labeled unsigned tagged
+  releases; switch it to `true` only after credentials and dashboard setup.
 - Managed ffmpeg installation still needs a clean Windows runtime test. Linux
   package/runtime testing and Authenticode signing also remain outstanding.
 - Dependency audits currently report 0 known npm and Rust vulnerabilities.

@@ -4,6 +4,38 @@ Add completed tasks directly below this introduction, newest first. Keep each
 entry concise enough for another AI assistant to understand what changed and
 what remains without reading a chat transcript.
 
+## 2026-08-28 - Temporary Unsigned Release Path
+
+### Request
+
+Publish current and near-term releases while the submitted SignPath Foundation
+application is pending, to build public usage and project reputation.
+
+### Decisions
+
+- Retain SEC-002 as an open High risk and label every temporary unsigned release
+  clearly; checksums provide integrity comparison, not publisher authentication.
+- Use repository variable `SIGNPATH_ENABLED=false` for unsigned tagged builds.
+  Setting it to `true` restores the existing fail-closed SignPath path.
+
+### Changed
+
+- Added conditional signed/unsigned Windows artifact upload and dynamic release
+  notices while preserving CI-built tag provenance and `SHA256SUMS` generation.
+- Updated signing, download, release, audit, feature, and handoff documentation.
+- Preserved the maintainer's submitted SignPath application wording change.
+
+### Validation
+
+- Official Actionlint `v1.7.12` passed both release workflows.
+- All tracked Markdown, diff whitespace, and the `v0.1.4` release-version gate
+  passed; repository variable `SIGNPATH_ENABLED` is explicitly `false`.
+
+### Remaining
+
+- After Foundation acceptance, configure the SignPath project, GitHub App,
+  organization variable and API-token secret, test signing, then enable it.
+
 ## 2026-08-28 - Version 0.1.4 Release Preparation
 
 ### Request

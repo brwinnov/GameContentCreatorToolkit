@@ -74,18 +74,18 @@ The tag build embeds the GitHub run number as the app build number. After both
 jobs pass, `Publish Tauri release artifacts` downloads artifacts from that exact
 workflow run and creates the GitHub Release for the tag.
 
-For tagged Windows builds, the workflow uploads the unsigned MSI as a temporary
-GitHub artifact and submits its artifact ID to SignPath. SignPath verifies the
-GitHub-hosted build origin and waits for the configured approver's manual
-decision. CI then requires a valid timestamped SignPath Foundation signature
-before uploading `windows-artifacts`. The publisher downloads only that signed
-artifact; it never downloads `windows-unsigned-artifacts`.
+Repository variable `SIGNPATH_ENABLED` selects the tagged Windows release path.
+While it is not `true`, CI publishes the MSI with an explicit unsigned warning
+and a verified checksum manifest. When it is `true`, the workflow uploads the
+unsigned MSI only as temporary SignPath input, waits for manual approval, and
+requires a valid timestamped SignPath Foundation signature before exposing the
+Windows release artifact.
 
 SignPath setup names, dashboard steps, and artifact configuration templates are
-documented in [`.signpath/README.md`](../.signpath/README.md). Tagged releases fail
-closed until repository variable `SIGNPATH_ORGANIZATION_ID` and secret
-`SIGNPATH_API_TOKEN` are configured after SignPath Foundation accepts the
-project.
+documented in [`.signpath/README.md`](../.signpath/README.md). Keep
+`SIGNPATH_ENABLED=false` until `SIGNPATH_ORGANIZATION_ID`,
+`SIGNPATH_API_TOKEN`, dashboard resources, and the GitHub App are configured.
+The signed path fails closed once enabled.
 
 The publisher generates and verifies `SHA256SUMS` for the MSI, DEB, and RPM
 before creating the release. SignPath Foundation's free OSS service supports
@@ -102,9 +102,10 @@ Before sharing a release, confirm:
 1. The tag points to the release commit.
 2. Windows and Linux jobs completed successfully.
 3. The publish workflow completed successfully.
-4. The SignPath request was manually approved for the originating workflow run.
+4. The release notes accurately identify whether the MSI is signed or unsigned.
 5. The release contains one current MSI, `.deb`, `.rpm`, and `SHA256SUMS`.
-6. The MSI has a valid timestamped SignPath Foundation signature.
+6. If signing is enabled, the MSI has a valid timestamped SignPath Foundation
+   signature.
 7. `sha256sum --check SHA256SUMS` passes for every release artifact.
 8. Package filenames and displayed application version match the tag.
 9. Release notes accurately describe working and placeholder features.

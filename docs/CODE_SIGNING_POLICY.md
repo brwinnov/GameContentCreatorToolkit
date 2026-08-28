@@ -5,6 +5,12 @@ open-source code-signing service after the project and its build configuration
 have been accepted. Until that integration is complete, release artifacts must
 not be represented as SignPath-signed.
 
+The Foundation application has been submitted. While it is pending, the
+maintainer may publish preview releases that are explicitly labeled unsigned,
+include checksums, and originate from tagged GitHub Actions builds. Set the
+repository variable `SIGNPATH_ENABLED` to `true` only after the SignPath
+resources and credentials are configured and an end-to-end signing test passes.
+
 Free code signing provided by [SignPath.io](https://about.signpath.io/),
 certificate by [SignPath Foundation](https://signpath.org/).
 

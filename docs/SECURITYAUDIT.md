@@ -121,9 +121,16 @@ required or stored by this project.**
 
   Remediation direction: the repository is MIT-licensed and publishes the
   code-signing and privacy policies required for a SignPath Foundation OSS
-  application. Dashboard-ready artifact configurations and a fail-closed tagged
-  MSI workflow are checked in. Foundation acceptance, SignPath resource setup,
-  repository credentials, and the first successful signed build remain.
+  application. The application has been submitted and dashboard-ready artifact
+  configurations are checked in. Foundation acceptance, SignPath resource
+  setup, repository credentials, and the first successful signed build remain.
+
+  Temporary risk acceptance: to establish public usage and project reputation,
+  the maintainer accepts publishing preview installers before SignPath approval.
+  These releases must be labeled unsigned, originate from tagged GitHub Actions
+  builds, include `SHA256SUMS`, and warn that checksums are not signatures. This
+  does not remediate SEC-002; enable the fail-closed signed path as soon as
+  SignPath setup is complete.
 
   Tasks:
 

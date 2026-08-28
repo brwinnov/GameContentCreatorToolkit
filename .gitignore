@@ -1,8 +1,13 @@
 # ── Secrets / local config ────────────────────────────────────────────────
 .env
 .env.local
+.env.*
 *.env
 !.env.example
+*.key
+*.p12
+*.pfx
+*.pem
 
 # ── Logs ─────────────────────────────────────────────────────────────────
 logs/*
@@ -18,7 +23,6 @@ dist/
 
 # ── Local-only build/release outputs (keep on disk, do not track) ────────
 release/
-dist/
 app/src-tauri/gen/
 
 # ── Local editor / AI tool metadata ───────────────────────────────────────

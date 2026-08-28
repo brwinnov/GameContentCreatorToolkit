@@ -11,7 +11,7 @@ current worktree because source code and Git history remain authoritative.
 - The working feature downloads official Steam trailers through Steam's API and
   remuxes DASH media to MP4 with ffmpeg.
 - Windows MSI and Linux DEB/RPM packages are released through tag-driven
-  GitHub Actions. Version `0.1.3` is the current patch release candidate.
+  GitHub Actions. Version `0.1.4` is the current patch release candidate.
 - The frontend is plain HTML, CSS, and JavaScript under `app/src/`; the backend
   is Rust under `app/src-tauri/src/`.
 - `scripts/pwsh/download_steam_trailers.ps1` is the authoritative legacy script.
@@ -27,6 +27,9 @@ current worktree because source code and Git history remain authoritative.
 - The Home and Settings views display the detected ffmpeg version. Windows
   Settings can select an existing ffmpeg/ffprobe pair or install a verified
   BtbN LGPL pair without elevation.
+- Settings provides editable Default and NavyWhite1 themes plus user-created
+  themes. Explicit updates, Save As, rename/delete, color customizations, and
+  startup choice persist in WebView storage; Default cannot be renamed/deleted.
 
 ## Current Planning State
 
@@ -97,16 +100,19 @@ current worktree because source code and Git history remain authoritative.
 
 ## Current Release Candidate
 
-- Version sources agree on `0.1.3`.
+- Version sources agree on `0.1.4`.
 - Local Windows MSI:
-  `release/gcc-app-0.1.3/GCCtoolkit_0.1.3_x64_en-US.msi` (ignored by Git).
+  `app/src-tauri/target/release/bundle/msi/GCCtoolkit_0.1.4_x64_en-US.msi`
+  (ignored by Git).
 - Local MSI SHA-256:
-  `F153985C4733FEA39A1963243DB278560C8A862B5E095D58590DF6A754255505`.
+  `A7644B27358D7FAA2802F3FF0F49ECFB2F949B48F6941585E9AE298028FD431B`.
 - MSI is machine-wide and retains UpgradeCode
   `{1DDF37BF-062F-547C-A167-DAB5D7867081}`.
 - Six Rust tests, strict Clippy, Rust formatting, frontend syntax, tracked
-  Markdown lint, Tauri dev startup, legacy-history recovery, and MSI identity
-  checks passed.
+  Markdown lint, release version gate, and MSI build/identity checks passed.
+- The local MSI is unsigned. Do not create `v0.1.4` until SignPath Foundation
+  accepts the project and `SIGNPATH_ORGANIZATION_ID` plus
+  `SIGNPATH_API_TOKEN` are configured; tagged publication fails closed.
 - Managed ffmpeg installation still needs a clean Windows runtime test. Linux
   package/runtime testing and Authenticode signing also remain outstanding.
 - Dependency audits currently report 0 known npm and Rust vulnerabilities.

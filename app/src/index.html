@@ -53,13 +53,8 @@
           <h1>Game Content<br />Creator Toolkit</h1>
           <p class="home-lede">Collect official trailers and media assets into a clean, creator-ready workspace.</p>
           <div class="home-meta" aria-label="Application information">
-            <span>Version <strong id="home-version">0.1.1</strong></span>
-            <span>Build <strong id="home-build">local</strong></span>
-            <span>Created by <strong id="home-creator">Barry Reilly / AckrosGaming</strong></span>
-          </div>
-          <div class="home-actions">
-            <button class="btn btn-primary" data-open-tab="steam">Open Steam downloader</button>
-            <button class="btn btn-ghost" data-open-tab="settings">Settings</button>
+            <span class="build-identity"><strong id="home-release-type">ALPHA</strong> <span id="home-release-version">0.1.4.local</span></span>
+            <span>Created by <strong id="home-creator">AckrosGaming</strong></span>
           </div>
         </div>
         <div class="home-mark" aria-hidden="true">
@@ -98,41 +93,11 @@
           </div>
         </section>
 
-        <aside class="home-overview" aria-labelledby="home-overview-title">
-          <div class="home-section-heading">
-            <div>
-              <p class="home-eyebrow">OVERVIEW</p>
-              <h2 id="home-overview-title">Ready to create</h2>
-            </div>
-          </div>
-
-          <dl class="home-status-list">
-            <div>
-              <dt>Media engine</dt>
-              <dd id="home-ffmpeg-status"><span class="status-dot is-checking"></span>Checking ffmpeg</dd>
-            </div>
-            <div>
-              <dt>Default output</dt>
-              <dd id="home-output-path">Loading...</dd>
-            </div>
-            <div>
-              <dt>Recent activity</dt>
-              <dd id="home-activity-count">No activity yet</dd>
-            </div>
-          </dl>
-
-          <div class="dependency-warning" id="home-ffmpeg-warning" hidden>
-            <strong>First step: install ffmpeg</strong>
-            <p>Steam trailer downloads need ffmpeg and ffprobe.</p>
-            <button class="btn btn-primary install-ffmpeg" type="button">Install for me</button>
-          </div>
-
-          <p class="home-tip"><span>TIP</span> Start with a Steam store URL, App ID, or game name. Existing files are skipped safely.</p>
-        </aside>
+        <aside class="home-overview" aria-hidden="true"></aside>
       </div>
 
       <footer class="home-footer">
-        <span>BETA</span>
+        <span>ALPHA</span>
         <p>Steam tools are available now. Additional sources are in active planning.</p>
       </footer>
     </section>
@@ -145,9 +110,18 @@
       </header>
 
       <div class="input-row">
-        <input type="text" id="steam-input" placeholder="Steam URL, App ID, or game name like No Man's Sky" />
-        <button class="btn btn-ghost" id="steam-paste" type="button">Paste</button>
-        <button class="btn btn-accent" id="steam-fetch">Find trailers</button>
+        <div class="steam-input-control">
+          <input type="text" id="steam-input" placeholder="Steam URL, App ID, or game name like No Man's Sky" />
+          <button class="icon-btn steam-input-paste" id="steam-paste" type="button" aria-label="Paste from clipboard" title="Paste from clipboard">
+            <svg class="lucide" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5h2a2 2 0 0 1 2 2v4"/><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4"/><rect width="6" height="4" x="9" y="3" rx="2"/><path d="m15 19 2 2 4-4"/></svg>
+          </button>
+          <button class="icon-btn steam-input-clear" id="steam-clear" type="button" aria-label="Clear Steam input" title="Clear Steam input" disabled>
+            <svg class="lucide" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
+          </button>
+          <button class="icon-btn steam-input-search" id="steam-fetch" type="button" aria-label="Find trailers" title="Find trailers">
+            <svg class="lucide" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          </button>
+        </div>
       </div>
 
       <div class="dependency-warning" id="steam-ffmpeg-warning" hidden>
@@ -266,24 +240,106 @@
         <p class="pane-sub">Applies to all downloader tabs</p>
       </header>
 
-      <div class="settings-row">
-        <div>
-          <div class="settings-label">Default download location</div>
-          <div class="settings-value" id="settings-output-path">—</div>
-        </div>
-        <button class="link-btn" id="settings-change-dir">Change</button>
-      </div>
+      <div class="settings-content">
+        <section class="settings-section appearance-section" aria-labelledby="settings-appearance-title">
+          <div class="settings-section-heading">
+            <p class="home-eyebrow">APPEARANCE</p>
+            <h2 id="settings-appearance-title">Theme</h2>
+          </div>
 
-      <div class="settings-row">
-        <div>
-          <div class="settings-label">ffmpeg</div>
-          <div class="settings-value settings-tool-version" id="settings-ffmpeg-version"></div>
-          <div class="settings-value" id="settings-ffmpeg-path">Detecting…</div>
-        </div>
-        <div class="settings-actions">
-          <button class="link-btn install-ffmpeg" type="button">Install</button>
-          <button class="link-btn" id="settings-change-ffmpeg" type="button">Change</button>
-        </div>
+          <div class="settings-row">
+            <label for="theme-picker">
+              <span class="settings-label">Preview theme</span>
+              <span class="settings-value">Switches the interface immediately</span>
+            </label>
+            <select id="theme-picker" class="settings-select">
+            </select>
+          </div>
+
+          <div class="settings-row">
+            <label for="theme-default-toggle">
+              <span class="settings-label">Use selected theme on startup</span>
+              <span class="settings-value" id="theme-default-status">Default is the startup theme</span>
+            </label>
+            <label class="toggle-control">
+              <input type="checkbox" id="theme-default-toggle" />
+              <span class="toggle-track" aria-hidden="true"><span></span></span>
+            </label>
+          </div>
+
+          <div class="theme-editor" id="theme-editor" aria-labelledby="theme-editor-title">
+            <div class="theme-editor-heading">
+              <div>
+                <div class="settings-label" id="theme-editor-title">Edit selected theme</div>
+                <div class="settings-value" id="theme-editor-status">Changes preview immediately</div>
+              </div>
+              <button class="link-btn" id="theme-reset" type="button">Reset colors</button>
+            </div>
+            <div class="theme-color-grid">
+              <label class="theme-color-field">Main background<input type="color" data-theme-color="bg-app" /></label>
+              <label class="theme-color-field">Panel<input type="color" data-theme-color="bg-panel" /></label>
+              <label class="theme-color-field">Raised panel<input type="color" data-theme-color="bg-panel-2" /></label>
+              <label class="theme-color-field">Primary text<input type="color" data-theme-color="text-primary" /></label>
+              <label class="theme-color-field">Secondary text<input type="color" data-theme-color="text-secondary" /></label>
+              <label class="theme-color-field">Accent<input type="color" data-theme-color="cyan" /></label>
+              <label class="theme-color-field">Highlight text<input type="color" data-theme-color="amber" /></label>
+            </div>
+            <div class="theme-save-row">
+              <label class="theme-name-field" for="theme-name">
+                <span>Theme name</span>
+                <input type="text" id="theme-name" maxlength="40" />
+              </label>
+              <div class="theme-save-actions">
+                <button class="btn btn-primary" id="theme-update" type="button">Update active</button>
+                <button class="btn btn-ghost" id="theme-save-as" type="button">Save as new</button>
+                <button class="btn btn-ghost" id="theme-rename" type="button">Rename</button>
+                <button class="btn btn-danger" id="theme-delete" type="button">Delete</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="settings-section" aria-labelledby="settings-workspace-title">
+          <div class="settings-section-heading">
+            <p class="home-eyebrow">WORKSPACE</p>
+            <h2 id="settings-workspace-title">Downloads and media</h2>
+          </div>
+
+          <div class="settings-row">
+            <div>
+              <div class="settings-label">Default download location</div>
+              <div class="settings-value" id="settings-output-path">—</div>
+            </div>
+            <button class="link-btn" id="settings-change-dir">Change</button>
+          </div>
+
+          <div class="settings-row">
+            <div>
+              <div class="settings-label">Media engine</div>
+              <div class="settings-value settings-tool-version" id="settings-ffmpeg-version"><span class="status-dot is-checking"></span>Checking ffmpeg</div>
+              <div class="settings-value" id="settings-ffmpeg-path">Detecting…</div>
+            </div>
+            <div class="settings-actions">
+              <button class="link-btn install-ffmpeg" type="button">Install</button>
+              <button class="link-btn" id="settings-change-ffmpeg" type="button">Change</button>
+            </div>
+          </div>
+
+          <div class="settings-row">
+            <div>
+              <div class="settings-label">Recent activity</div>
+              <div class="settings-value" id="settings-activity-count">No activity yet</div>
+            </div>
+            <button class="link-btn" type="button" data-open-tab="steam">Open Steam</button>
+          </div>
+
+          <p class="settings-tip"><span>TIP</span> Start with a Steam store URL, App ID, or game name. Existing files are skipped safely.</p>
+        </section>
+
+        <footer class="settings-footer" aria-label="Application build information">
+          <span id="settings-release">ALPHA 0.1.4.local</span>
+          <small id="settings-creator">AckrosGaming</small>
+        </footer>
       </div>
     </section>
 

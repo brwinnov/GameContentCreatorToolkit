@@ -3,6 +3,27 @@
 All notable changes to this project. Format loosely follows
 [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.1.4] — 2026-08-28
+
+### Added
+
+- Theme picker and color editor in Settings, with persistent startup-theme,
+  editable highlight text, explicit updates, Save As, rename, and delete.
+- Protected the Default theme from rename and deletion while allowing custom
+  themes and NavyWhite1 to be managed from the same picker.
+- `NavyWhite1`, a light main-view theme that preserves the dark navigation rail
+  while using accessible dark content colors on white surfaces.
+
+### Changed
+
+- Removed redundant Open Steam downloader and Settings buttons from the Home
+  introduction; navigation and the Steam workflow card remain available.
+- Replaced the Steam input's text Paste and Find trailers buttons with compact
+  clipboard, clear, and search icons while preserving native keyboard paste
+  when the field is focused.
+- Moved media-engine, output-location, and recent-activity details from Home to
+  Settings, with the `ALPHA <version>.<build>` identity visible in both views.
+
 ## [0.1.3] — 2026-08-28
 
 ### Added

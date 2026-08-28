@@ -4,6 +4,190 @@ Add completed tasks directly below this introduction, newest first. Keep each
 entry concise enough for another AI assistant to understand what changed and
 what remains without reading a chat transcript.
 
+## 2026-08-28 - Version 0.1.4 Release Preparation
+
+### Request
+
+Commit and push the completed UI work, publish the next release, and provide
+the MSI installer.
+
+### Decisions
+
+- Prepared patch release `0.1.4` and retained the pinned MSI UpgradeCode.
+- Do not create the release tag or publish an unsigned MSI: the fail-closed
+  workflow requires SignPath configuration that is not present in GitHub.
+
+### Changed
+
+- Synchronized npm, lockfile, Cargo, Tauri, and preview versions to `0.1.4`.
+- Added a dedicated `0.1.4` changelog section and refreshed release handoff
+  status.
+
+### Validation
+
+- Release version gate, npm install/audit, frontend syntax, Rust formatting,
+  strict Clippy, six tests, Markdown lint, and diff checks passed.
+- Built `GCCtoolkit_0.1.4_x64_en-US.msi`; ProductVersion is `0.1.4`, UpgradeCode
+  is unchanged, and SHA-256 is
+  `A7644B27358D7FAA2802F3FF0F49ECFB2F949B48F6941585E9AE298028FD431B`.
+- Rust audit found no vulnerabilities and the 18 already-tracked warnings.
+
+### Remaining
+
+- Complete SignPath Foundation onboarding and configure the required GitHub
+  variable and secret, then create/push `v0.1.4` and verify signed artifacts.
+
+## 2026-08-28 - Home Action Cleanup
+
+### Request
+
+Remove the redundant Open Steam downloader and Settings buttons from Home.
+
+### Changed
+
+- Removed both introduction actions and their unused layout rule; the Steam
+  workflow card and navigation rail still provide access to those views.
+
+### Validation
+
+- Frontend syntax, editor diagnostics, and `git diff --check` passed.
+- NavyWhite1 Home preview retained its layout with no horizontal overflow.
+
+## 2026-08-28 - Theme Picker and NavyWhite1
+
+### Request
+
+Add a theme picker and editor to Settings, support choosing the startup theme,
+and create a NavyWhite1 variant with white main views and dark content.
+
+### Decisions
+
+- Keep the navigation rail dark in both built-in themes and theme only the main
+  workspace surfaces, controls, borders, and typography.
+- Persist the startup choice and per-theme editor overrides in WebView storage;
+  theme switching remains immediate and Reset restores built-in colors.
+
+### Changed
+
+- Added Default and NavyWhite1 theme selection, seven color editors including
+  highlight text, a startup toggle, and responsive Settings layouts.
+- Added explicit Update and Save As commands plus rename/delete controls;
+  Default is protected from rename and deletion.
+- Separated rail colors from workspace colors and made warning and console
+  surfaces theme-aware.
+
+### Validation
+
+- Frontend syntax and editor diagnostics passed.
+- Browser reload preserved theme selection and an edited color; Reset restored
+  the built-in palette and startup reassignment worked in both directions.
+- Rename, custom-theme creation, startup assignment, and deletion passed; deleting
+  the active startup theme restored Default, whose protected controls stayed disabled.
+- All seven panes used white backgrounds and dark headings under NavyWhite1 at
+  390px with no horizontal overflow.
+
+## 2026-08-28 - Steam Search Preview Fixture
+
+### Request
+
+Investigate whether Steam game-name search was broken after the standalone
+browser preview returned no match for `Bus Simulator 27`.
+
+### Decisions
+
+- Keep the live Tauri search unchanged because its exact Steam API request
+  returns `Bus Simulator 27` with App ID `2397320`.
+- Add that game to the standalone preview's explicitly mocked search catalog.
+
+### Validation
+
+- The live Steam endpoint used by Rust returned one matching item.
+- Frontend syntax, editor diagnostics, and `git diff --check` passed.
+- Browser preview showed one visible `Bus Simulator 27 (2397320)` result.
+
+## 2026-08-28 - Home and Settings Build Identity
+
+### Request
+
+Empty the lower-right Home overview for later use, move its information into a
+better Settings layout, and show `ALPHA <version>.<build>` on both views.
+
+### Decisions
+
+- Source release type, Cargo version, and CI/local build number from the shared
+  backend metadata contract rather than hard-coding the packaged value.
+- Keep all existing Settings controls and align duplicate build information at
+  the bottom-right of Settings.
+
+### Changed
+
+- Removed Home's media-engine, output-location, activity, warning, and tip
+  content while preserving the empty layout area.
+- Added output, ffmpeg, recent activity, and guidance to a structured Settings
+  workspace section with responsive action placement.
+- Added the same `ALPHA 0.1.3.<build>` identity to Home and Settings.
+
+### Validation
+
+- Rust metadata compile-check, formatting, and all six tests passed.
+- Frontend syntax and editor diagnostics passed with no stale Home references.
+- Browser checks at 1280px and 390px confirmed the empty Home area, retained
+  Settings controls and values, bottom-right build identity, and no overflow.
+
+## 2026-08-28 - Compact Steam Input Actions
+
+### Request
+
+Replace the Steam Paste and Find trailers text buttons with smaller icon
+controls, add a clear control, and determine how `Ctrl+V` should behave.
+
+### Decisions
+
+- Keep native keyboard paste semantics while the input is focused rather than
+  reading the clipboard globally whenever the Steam pane has focus.
+- Keep explicit one-click paste, clear, and search actions as accessible icon
+  buttons embedded inside the input.
+
+### Changed
+
+- Added clipboard-paste, trash, and search icons with labels, tooltips, keyboard
+  focus styles, and a disabled empty state for Clear.
+- Clear now removes stale match/status feedback and returns focus to the input.
+
+### Validation
+
+- Frontend syntax and editor diagnostics passed.
+- Browser checks passed at 1280px and 390px with no horizontal overflow; Clear
+  enabled after input, reset the value, disabled again, and restored focus.
+- Mobile screenshot verification confirmed that placeholder text does not run
+  beneath the embedded controls.
+
+## 2026-08-28 - Gitignore Audit
+
+### Request
+
+Review the workspace for local, generated, or sensitive files that should be
+ignored by Git.
+
+### Decisions
+
+- Keep existing ignores for dependencies, Rust/Tauri output, local releases,
+  downloaded media, editor state, and AI-tool state.
+- Ignore environment variants and private signing-key files while leaving
+  public certificates and source configuration visible.
+- Do not add speculative coverage or tool-cache rules before those tools exist.
+
+### Changed
+
+- Added `.env.*`, `*.key`, `*.p12`, `*.pfx`, and `*.pem` to `.gitignore`.
+- Preserved the `.env.example` exception and removed a duplicate `dist/` rule.
+
+### Validation
+
+- Git matched all representative environment and private-key paths to the new
+  rules while leaving public certificates and source configuration visible.
+- No untracked visible files or suspicious generated files were tracked.
+
 ## 2026-08-28 - Documentation Layout
 
 ### Request

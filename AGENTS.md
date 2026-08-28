@@ -9,7 +9,7 @@ is retained as the authoritative legacy script; see `docs/PLAN.md`.
 
 ## Status
 
-Version `0.1.3` is the current release candidate. The desktop Steam workflow,
+Version `0.1.4` is the current release candidate. The desktop Steam workflow,
 clipboard paste, durable history, per-game folders, and Windows ffmpeg setup
 are implemented. The legacy script is confirmed stable: the local `initial/` copy and
 `scripts/pwsh/download_steam_trailers.ps1` were diffed and are byte-identical

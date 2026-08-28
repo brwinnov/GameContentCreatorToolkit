@@ -81,7 +81,7 @@ starting auto-update, social downloaders, and a major UI rewrite together.
 | STM-07 | Language and region selection | idea | P3 | M | Make Steam `cc` and `l` configurable. |
 | STM-08 | Steam Workshop asset support | idea | P3 | XL | Separate legal/API and content-type investigation required. |
 | STM-09 | Store description and press facts export | idea | P2 | M | Export supported text metadata for review notes without copying user/private content. |
-| STM-10 | Paste Steam URL from clipboard | shipped | P1 | S | `PASTE` reads clipboard text only after a user click, fills the existing field, and reports empty or denied clipboard access. |
+| STM-10 | Paste Steam URL from clipboard | shipped | P1 | S | Compact clipboard, clear, and search icons share the input; clipboard text is read only after a user click, while native keyboard paste remains available when the field is focused. |
 | STM-11 | Safe per-game trailer folder | shipped | P1 | S | Downloads now use `<SteamID> <Safe_Game_Name>` under the selected root, reuse an existing folder with the same Steam ID, remove unsafe/special characters, and cap the title component at 100 characters. |
 
 ## Download Workflow
@@ -99,7 +99,7 @@ starting auto-update, social downloaders, and a major UI rewrite together.
 | APP-09 | Disk-space and destination validation | planned | P1 | S | Check writable destination and estimated space before starting. |
 | APP-10 | In-app logs and diagnostics export | idea | P2 | M | Redact usernames/paths where possible; make support reports user-controlled. |
 | APP-11 | Native notifications | idea | P3 | S | Completion/failure notifications, configurable and non-spammy. |
-| APP-12 | Light/dark/system themes | idea | P3 | M | Preserve current visual identity; accessibility takes priority. |
+| APP-12 | Theme picker and editor | shipped | P3 | M | Includes Default and NavyWhite1, seven-color editing, Save As/update/rename/delete, protected Default, and a startup-theme toggle. |
 | APP-13 | Keyboard and screen-reader accessibility | planned | P1 | M | Focus order, labels, contrast, reduced motion, and keyboard-complete workflows. |
 
 ## Additional Platforms

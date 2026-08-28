@@ -71,6 +71,7 @@ pub struct SteamSearchResult {
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AppMetadata {
+    pub release_type: &'static str,
     pub version: &'static str,
     pub build: &'static str,
     pub creator: &'static str,
@@ -116,11 +117,12 @@ fn emit_progress_pct(app: &AppHandle, tag: &str, message: impl Into<String>, per
 #[tauri::command]
 fn get_app_metadata() -> AppMetadata {
     AppMetadata {
+        release_type: "ALPHA",
         version: env!("CARGO_PKG_VERSION"),
         build: option_env!("GCC_BUILD_NUMBER")
             .or(option_env!("GITHUB_RUN_NUMBER"))
             .unwrap_or("local"),
-        creator: "Barry Reilly / AckrosGaming",
+        creator: "AckrosGaming",
     }
 }
 

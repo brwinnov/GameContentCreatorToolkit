@@ -33,6 +33,9 @@
       "icons/icon.ico"
     ],
     "windows": {
+      "wix": {
+        "upgradeCode": "1DDF37BF-062F-547C-A167-DAB5D7867081"
+      },
       "nsis": {
         "installMode": "perMachine",
         "startMenuFolder": "AckrosGaming"

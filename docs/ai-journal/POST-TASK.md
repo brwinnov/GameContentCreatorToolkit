@@ -29,6 +29,8 @@ TODO item.
 - Marked `STM-11` shipped across feature, roadmap, TODO, and changelog docs.
 - Bumped all application version sources to `0.1.2` for a Windows upgrade
   installer that can replace the existing `0.1.1` installation.
+- Pinned the installed `0.1.0` MSI's original UpgradeCode after package
+  inspection showed the generated `0.1.2` identity would install side-by-side.
 
 ### Validation
 

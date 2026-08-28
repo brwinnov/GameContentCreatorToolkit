@@ -9,6 +9,8 @@ All notable changes to this project. Format loosely follows
 
 - Safe per-game Steam trailer folders named `<SteamID> <Safe_Game_Name>`, with
   same-ID folder reuse and cross-platform title sanitization.
+- Pinned the original Windows MSI upgrade identity so `0.1.2` replaces prior
+  installations instead of creating a side-by-side app entry.
 - Steam clipboard-paste idea (`STM-10`) and feasibility review for the planned
   creative-media and PressKit workspace.
 - Model-neutral pre-task and post-task AI handoff workflow under

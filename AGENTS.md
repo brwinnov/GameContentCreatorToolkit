@@ -15,7 +15,7 @@ app in `app/`.
 - Release: `0.1.6`
 - Main workflow: Steam trailer lookup + download in the Tauri desktop app
 - Active UI: Home, Steam, and Settings views under `app/src/`
-- Current packaging: Windows and Linux release targets; macOS remains deferred
+- Current packaging: Windows MSI plus Linux DEB/RPM are built; macOS remains deferred
 - Active docs: `README.md`, `CHANGELOG.md`, `docs/PLAN.md`, and `app/README.md`
 
 ## Key files
@@ -32,6 +32,14 @@ app in `app/`.
 - `docs/SECURITYAUDIT.md` — security notes and dependency review
 - `docs/ai-journal/` — handoff and historical journal notes
 
+## AI task handoff
+
+All AI assistants, regardless of vendor or model, must follow
+docs/ai-journal/README.md and read `docs/ai-journal/PRE-TASK.md` before
+editing. After validation, add a concise POST-TASK journal entry and refresh the
+pre-task snapshot whenever status, priorities, constraints, or the next action
+changes.
+
 ## How to run
 
 From the app directory:
@@ -42,27 +50,32 @@ npm install
 npm run tauri dev
 ```
 
-## Desktop app behaviour
+## Steam API behaviour
 
-- Steam URLs and App IDs are accepted directly in the desktop UI
-- Trailer search uses the public Steam API and Steam metadata
-- Downloaded media is assembled to MP4 with ffmpeg
-- ffmpeg installation and repair flows are managed inside the app on Windows
-- Local history and settings persist outside the install directory
+- Endpoint: `https://store.steampowered.com/api/appdetails?appids=<ID>&cc=us&l=english`
+- Age-gate bypass cookie string: `birthtime=757382401; lastagecheckage=1-0-1994; mature_content=1`
+- Trailers arrive under `data.movies[]` and are newest-first
+- Each trailer exposes a `dash_h264` manifest; the app remuxes the stream to MP4 with `ffmpeg -c copy`
+- Do not scrape the store page HTML or ephemeral browser Blob URLs; those blob URLs are not reusable outside the browser context
 
-## Relevant roadmap
+## ffmpeg
 
-The project is still in active feature evolution, but the shipped path is now the
-Tauri desktop app, not the retired standalone PowerShell script.
+- Managed install location: `%LOCALAPPDATA%\com.ackrosgaming.gcc\tools\ffmpeg\bin`
+- `settings.json` `ffmpegPath` means a user-chosen custom path only
+- `managedArchiveSha256` drives the managed-install update check
+- Local Windows probe candidate: `F:\ffmpeg\bin\ffmpeg.exe`
 
-Future work is tracked in:
+## Validation baseline
 
-- `docs/PLAN.md`
-- `docs/TODO.md`
-- `docs/FEATURES.md`
-- `CHANGELOG.md`
+- `cargo fmt --check`
+- `cargo clippy --all-targets -- -D warnings`
+- `cargo test`
+- `node --check app/src/main.js`
+- `npx markdownlint-cli2 $(git ls-files '*.md')`
 
-## Documentation standards
+## Language
 
-Public-facing documentation should remain aligned with the current desktop app,
-not with retired helper scripts or earlier beta-era assumptions.
+All user-facing text (UI labels, status messages, errors, docs) uses English
+(Ireland) spelling: `colour`, `customise`, `initialise`, `organise`, `centre`.
+Code identifiers, CSS properties, and third-party API names keep their original
+spelling.

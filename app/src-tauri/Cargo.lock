@@ -1187,7 +1187,7 @@ dependencies = [
 
 [[package]]
 name = "ggt-app"
-version = "0.1.5"
+version = "0.1.6"
 dependencies = [
  "dirs 5.0.1",
  "reqwest 0.12.28",

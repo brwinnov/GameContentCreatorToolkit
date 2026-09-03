@@ -102,17 +102,8 @@ required or stored by this project.**
   Existing mitigation: the script is deprecated and normal documented inputs are
   numeric Steam IDs. This is not sufficient while the script remains shipped.
 
-  Tasks:
-
-  - [ ] Validate `APP_ID` against `^[0-9]+$` before any network or Node use.
-  - [ ] Pass the value to Node through an argument or environment variable; do
-    not embed it in JavaScript source.
-  - [ ] Add tests that reject quotes, brackets, newlines, shell metacharacters,
-    and JavaScript payloads.
-  - [ ] Remove the Bash script from supported distributions if it will not be
-    maintained.
-
-  #### SEC-002 — High — Public installers are not code-signed
+  This issue is resolved by removal in commit `bc6d041` when the legacy Bash and
+  PowerShell downloader paths were retired from the supported project state.
 
   The release workflow publishes MSI, DEB, and RPM files without an application
   signature or detached release signature. HTTPS and GitHub access controls help

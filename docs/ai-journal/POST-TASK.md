@@ -4,6 +4,56 @@ Add completed tasks directly below this introduction, newest first. Keep each
 entry concise enough for another AI assistant to understand what changed and
 what remains without reading a chat transcript.
 
+## 2026-09-03 - Housekeeping and 0.1.6 repo repair
+
+### Request
+
+Fix the post-0.1.6 review findings, restore the lost engineering content in the
+repo docs, remove the retired legacy script paths, and keep the release metadata
+and planning docs aligned with the actual shipped 0.1.6 state.
+
+### Decisions
+
+- Restore the lost sections from the historical `c491276` AGENTS/PLAN content
+  rather than rewriting them into a generic summary.
+- Keep the current release at `0.1.6` and avoid changing shipped behavior.
+- Keep Linux package support in the active path because the repository and
+  workflows already produce `.deb` and `.rpm` artifacts; do not claim the Linux
+  release is fully validated unless a live release verification is performed.
+- Retire the legacy PowerShell/Bash downloader scripts from the supported project
+  workflow and remove stale references from the active docs.
+
+### Changed
+
+- Restored the engineering sections in `AGENTS.md` and `CLAUDE.md` with the
+  Steam API, ffmpeg, validation baseline, and user-facing spelling guidance.
+- Updated `README.md`, `app/README.md`, `docs/PLAN.md`, and `docs/ai-journal/PRE-TASK.md`
+  to reflect the correct 0.1.6 project state and the Linux package reality.
+- Added the 0.1.5 wrong-tag note to `CHANGELOG.md` and marked the 2026-08-28
+  `SEC-001` issue as resolved by removal in the security audit.
+- Removed the duplicate `.footer-actions` and obsolete `.settings-tip` CSS from
+  `app/src/style.css`.
+- Deleted the retired script paths and cleaned the stale legacy references from
+  the active docs.
+
+### Validation
+
+- `git grep` confirms the active Markdown paths no longer reference the retired
+  downloader scripts, aside from intentionally historical changelog/archive notes.
+- `node --check app/src/main.js` was run for the frontend syntax check.
+- The repository now reflects the 0.1.6 housekeeping fix set without changing
+  the shipped app behavior.
+
+### Remaining
+
+- Confirm the GitHub release and tag metadata from the real GitHub environment
+  before claiming the final 0.1.6 asset hash, workflow run IDs, and `Latest`
+  status. The environment used here does not have the required GitHub release
+  authorisation or asset access.
+- If the maintainer wants Linux paused instead of kept active, the workflow files
+  and docs must be updated to remove the Ubuntu matrix and `.deb`/`.rpm`
+  assertions.
+
 ## 2026-09-03 - Media Engine Install Progress and Release Build
 
 ### Request

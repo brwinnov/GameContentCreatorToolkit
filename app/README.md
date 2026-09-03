@@ -4,7 +4,8 @@ Windows + Linux desktop app for the active Steam trailer workflow, with planned
 future media modules for other platforms. The app is the authoritative product
 path; the retired PowerShell helper is no longer the supported workflow.
 
-macOS packaging is intentionally deferred for the current release milestone.
+macOS packaging is intentionally deferred for the current release milestone, and
+the current Linux DEB/RPM build path remains in active release validation.
 
 ## Preview the UI right now (no install needed)
 
@@ -49,10 +50,10 @@ also select an existing ffmpeg/ffprobe pair.
 npm run tauri build
 ```
 
-Output lands in `src-tauri/target/release/bundle/`. The current release focus is
-on the Windows MSI only. Linux `.deb` and `.rpm` builds are intentionally paused
-until the 0.1.6 validation pass is complete. macOS `.app`/DMG is not part of the
-active roadmap.
+Output lands in `src-tauri/target/release/bundle/`. The current release set
+includes the Windows MSI and the Linux `.deb` and `.rpm` builds, but Linux
+packages remain unvalidated rather than paused. macOS `.app`/DMG is not part of
+the active roadmap.
 
 ## Icons
 

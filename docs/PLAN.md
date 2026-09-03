@@ -17,8 +17,8 @@ from the public-facing documentation.
 - Settings: ffmpeg detection, managed install path, repair/update handling, and
   persistent user-local preferences
 - Release state: `0.1.6` is the current public release
-- Packaging: Windows MSI is the active release target; DEB/RPM packaging is
-  currently paused pending validation of the 0.1.6 desktop build
+- Packaging: Windows MSI and Linux DEB/RPM builds are both part of the active
+  release set; Linux packages remain unvalidated rather than paused
 - macOS remains deferred
 
 ## Roadmap
@@ -73,8 +73,8 @@ shipped capability set:
 
 - no bundling of ffmpeg or yt-dlp in the repository itself
 - no macOS release packaging in the active milestone
-- no DEB/RPM release builds while the 0.1.6 validation pass is in progress
-- no claim that social-platform modules are available yet
+- no claim that the Linux package set is fully validated beyond the current
+  release pass
 - no support for any legacy PowerShell-only workflow as the primary path
 
 ## Key references

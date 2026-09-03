@@ -59,6 +59,9 @@ migration or release review.
       entries were recovered during the Windows runtime test.
 - [x] Add Windows ffmpeg onboarding: first-steps warnings, verified user-local
       install, Settings path override, and version display on Home/Settings.
+- [x] Retire the legacy downloader paths from the supported project state; the
+      Bash and PowerShell script artifacts are no longer maintained or referenced
+      in the active workflow.
 - [ ] Pick first Phase 1 hardening item (batch mode vs. metadata sidecar vs.
       screenshot/art pulling) and implement.
 

@@ -5,9 +5,9 @@ Steam trailer media into local MP4 files without hunting through browser DevTool
 or copy-pasting ephemeral blob URLs.
 
 The current app is a working desktop workflow for Steam trailer downloads, with
-ffmpeg management and persistent user settings built into the UI. It is designed
-for Windows first, and Linux DEB/RPM packaging is currently paused until the
-0.1.6 desktop release has been validated and is considered stable.
+ffmpeg management and persistent user settings built into the UI. The 0.1.6
+release includes the desktop app plus the current Linux DEB/RPM build path, while
+Windows remains the primary validation target for day-to-day installer testing.
 
 ## What the app does now
 
@@ -68,8 +68,9 @@ npm run tauri build
 ```
 
 Outputs are generated under the Tauri bundle directories for the selected target.
-For the current phase, the release focus is Windows MSI builds only. Linux DEB/RPM
-release builds are intentionally paused until the 0.1.6 validation pass is complete.
+The project currently ships the Windows MSI and validates the Linux DEB/RPM
+packages as part of the same release set, while the Tauri app remains the
+authoritative project path.
 
 ## Project structure
 
@@ -111,10 +112,9 @@ frontend metadata, and each release is published with GitHub release notes.
 The initial SignPath Foundation application was refused because the project does
 not yet meet their minimum public-reputation and visibility threshold. The
 project is continuing with clearly labeled unsigned builds and is not paying for
-a commercial SignPath subscription. At this time, the Linux DEB/RPM release
-path is intentionally suspended. The project is validating the Windows 0.1.6
-release first and will revisit Linux packaging only once that path is considered
-reliable and tested.
+a commercial SignPath subscription. The Linux DEB/RPM release path remains in
+active testing as part of the current release set, while the project continues to
+validate the Windows 0.1.6 installer and the published desktop workflow.
 
 ## License
 

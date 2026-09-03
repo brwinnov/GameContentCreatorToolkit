@@ -1,9 +1,10 @@
 # Game Content Creator Toolkit — desktop app
 
-Windows + Linux desktop wrapper around the Steam trailer downloader, with
-placeholder tabs for YouTube, TikTok, and Instagram (Phase 3 — routed through
-yt-dlp, not yet implemented). macOS packaging is intentionally deferred for the
-current release milestone.
+Windows + Linux desktop app for the active Steam trailer workflow, with planned
+future media modules for other platforms. The app is the authoritative product
+path; the retired PowerShell helper is no longer the supported workflow.
+
+macOS packaging is intentionally deferred for the current release milestone.
 
 ## Preview the UI right now (no install needed)
 

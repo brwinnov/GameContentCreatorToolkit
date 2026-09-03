@@ -1,15 +1,14 @@
 # Contributing
 
 Contributions should stay focused on the supported Windows and Linux desktop
-application, Steam media workflow, release integrity, or documented roadmap.
-DRM bypass and private-account credential capture are out of scope.
+application, the Steam media workflow, release integrity, or the documented
+roadmap. DRM bypass and private-account credential capture are out of scope.
 
 ## Before Opening a Pull Request
 
 1. Open or reference an issue for behavioral changes when practical.
 2. Keep changes narrow and update relevant documentation or tests.
-3. Edit `scripts/pwsh/download_steam_trailers.ps1`, then run
-   `build_toolkit.ps1`; do not hand-edit the generated `toolkit/` copy.
+3. Work in the `app/` Tauri project and keep the desktop app as the active path.
 4. Never commit downloaded media, build output, logs, credentials, or `.env`.
 
 Run the applicable checks from the repository root:

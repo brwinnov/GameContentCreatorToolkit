@@ -1,6 +1,8 @@
 # TODO
 
-Living checklist. Move finished items to CHANGELOG.md, don't just delete them.
+Living checklist for the current desktop-first workflow. Historical notes about
+older PowerShell-era work are retained only where they are useful context for
+migration or release review.
 
 ## Now
 

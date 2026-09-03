@@ -49,7 +49,7 @@ starting auto-update, social downloaders, and a major UI rewrite together.
 | REL-02 | Single Windows MSI distribution | shipped | P1 | S | MSI is the only public Windows installer. Preserve the original WiX UpgradeCode and validate install/update/uninstall against prior releases. |
 | REL-03 | Portable Windows ZIP | planned | P1 | M | Package app plus required tools and notices; portable builds receive update notifications but do not overwrite themselves. |
 | REL-04 | Signed application auto-update | planned | P1 | L | Detailed in `repo-update.md`; requires MSI elevation handling, signing keys, tag-driven releases, and update UI. |
-| REL-05 | Windows Authenticode signing | blocked | P1 | M | Application submitted. Preview releases are labeled unsigned until Foundation acceptance; `SIGNPATH_ENABLED=true` activates fail-closed signing after setup. |
+| REL-05 | Windows Authenticode signing | dropped | P1 | M | SignPath Foundation declined the free OSS application; a paid SignPath subscription is out of scope. No code-signing plan is active. See `docs/CODE_SIGNING_POLICY.md`. |
 | REL-06 | Stable and beta update channels | idea | P2 | M | Separate signed manifests; stable installations must ignore prereleases. |
 | REL-07 | Linux AppImage | idea | P2 | M | Enables Tauri-style Linux self-update; retain `.deb`/`.rpm` for package-manager users. |
 | REL-08 | Linux package runtime test matrix | ready | P0 | M | Test Ubuntu/Debian and Fedora clean installs, ffmpeg discovery, picker, download, uninstall. |

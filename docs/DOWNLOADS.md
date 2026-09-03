@@ -7,18 +7,11 @@ Each release provides a Windows MSI and Linux DEB/RPM packages together with a
 
 ## Code Signing Policy
 
-The project uses free code signing provided by
-[SignPath.io](https://about.signpath.io/), certificate by
-[SignPath Foundation](https://signpath.org/), when that service becomes
-available to this project. The initial Foundation application was declined
-because the project does not yet meet SignPath's minimum public-reputation and
-visibility threshold.
-
-At this time, releases remain explicitly unsigned. The project is not paying
-for a commercial SignPath subscription to bypass the Foundation gate, and no
-signed Windows installer is presently being claimed. Windows may display an
-Unknown Publisher warning. Download only from this repository and verify the
-published checksum before running an unsigned installer.
+Releases are explicitly unsigned. The project has no active code-signing
+plan — see the [code signing policy](CODE_SIGNING_POLICY.md) for why. No
+signed Windows installer is claimed. Windows may display an Unknown Publisher
+warning. Download only from this repository and verify the published checksum
+before running an unsigned installer.
 
 ## Verification
 
@@ -29,14 +22,10 @@ Compare the SHA-256 digest of a downloaded file with its entry in
 Get-FileHash -Algorithm SHA256 .\GCCtoolkit_*.msi
 ```
 
-For signed Windows releases, open the MSI's **Digital Signatures** properties
-or run Windows SDK `signtool verify /pa /all /v <installer.msi>`. Require a
-valid timestamped signature issued to SignPath Foundation.
-
-For an explicitly unsigned preview release, confirm that its release notes say
-unsigned and verify `SHA256SUMS`. A checksum detects download corruption and
-supports comparison with this repository's release, but it is not a publisher
-signature and does not provide the same protection as Authenticode.
+Confirm the release notes say unsigned and verify `SHA256SUMS`. A checksum
+detects download corruption and supports comparison with this repository's
+release, but it is not a publisher signature and does not provide the same
+protection as Authenticode.
 
 ## System Changes and Uninstallation
 

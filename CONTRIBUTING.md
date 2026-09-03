@@ -22,7 +22,7 @@ Set-Location ../..
 node --check app/src/main.js
 ```
 
-Also lint changed Markdown and confirm local links still resolve. Release and
-SignPath workflow changes require explicit maintainer review. By contributing,
+Also lint changed Markdown and confirm local links still resolve. Release
+workflow changes require explicit maintainer review. By contributing,
 you agree that your contribution is provided under the repository's
 [MIT License](LICENSE).

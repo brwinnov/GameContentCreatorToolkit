@@ -106,37 +106,35 @@ required or stored by this project.**
   `scripts/bash/download_steam_trailers.sh` along with the rest of the legacy
   PowerShell/Bash downloader paths.
 
+  #### SEC-002 — High — Public installers are not code-signed
+
   The release workflow publishes MSI, DEB, and RPM files without an application
   signature or detached release signature. HTTPS and GitHub access controls help
   transport integrity, but users cannot independently authenticate the publisher
   or distinguish an official installer from a convincing replacement.
 
-  Remediation direction: the repository is MIT-licensed and publishes the
-  code-signing and privacy policies required for a SignPath Foundation OSS
-  application. The application has been submitted and dashboard-ready artifact
-  configurations are checked in. Foundation acceptance, SignPath resource
-  setup, repository credentials, and the first successful signed build remain.
+  Remediation direction: SignPath Foundation's free OSS code-signing programme
+  was the intended route; SignPath declined the application because the
+  project did not meet its public-reputation and visibility threshold, and a
+  commercial SignPath subscription is not free. This project has no active
+  code-signing plan — see `docs/CODE_SIGNING_POLICY.md`. SEC-002 remains open;
+  it will only be remediated if a viable no-cost or otherwise justified signing
+  route becomes available.
 
-  Temporary risk acceptance: to establish public usage and project reputation,
-  the maintainer accepts publishing preview installers before SignPath approval.
-  These releases must be labeled unsigned, originate from tagged GitHub Actions
-  builds, include `SHA256SUMS`, and warn that checksums are not signatures. This
-  does not remediate SEC-002; enable the fail-closed signed path as soon as
-  SignPath setup is complete.
+  Risk acceptance: releases are published unsigned, clearly labeled as such,
+  originate from tagged GitHub Actions builds, and include `SHA256SUMS` with a
+  warning that checksums are not signatures.
 
   Tasks:
 
-  - [x] Adopt an OSI-approved project license and publish SignPath's required
-    code-signing roles and privacy policy.
+  - [x] Adopt an OSI-approved project license.
   - [ ] Authenticode-sign the MSI with a protected code-signing certificate and
-    timestamp it before upload.
+    timestamp it before upload — blocked: no signing route available.
   - [ ] Verify the MSI signature in CI and fail publication on absence, mismatch,
-    or invalid timestamp.
+    or invalid timestamp — blocked: no signing route available.
   - [ ] Define signing or detached-signature verification for Linux packages.
   - [x] Generate and verify a `SHA256SUMS` manifest for every release.
   - [ ] Add an independently verifiable signature for the checksum manifest.
-  - [x] Keep signing keys outside repository and workflow plaintext; SignPath
-    Foundation controls the certificate and CI receives only a submitter token.
 
   #### SEC-003 — Medium — Managed ffmpeg trust is mutable and same-origin
 

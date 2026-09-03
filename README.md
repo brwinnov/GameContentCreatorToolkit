@@ -109,12 +109,11 @@ This repository includes a tag-driven release flow for shipping the desktop app
 artifacts. The current app version is kept in sync across the Tauri project and
 frontend metadata, and each release is published with GitHub release notes.
 
-The initial SignPath Foundation application was refused because the project does
-not yet meet their minimum public-reputation and visibility threshold. The
-project is continuing with clearly labeled unsigned builds and is not paying for
-a commercial SignPath subscription. The Linux DEB/RPM release path remains in
-active testing as part of the current release set, while the project continues to
-validate the Windows 0.1.6 installer and the published desktop workflow.
+Releases are unsigned by policy — see
+[`docs/CODE_SIGNING_POLICY.md`](docs/CODE_SIGNING_POLICY.md). The Linux
+DEB/RPM release path remains in active testing as part of the current release
+set, while the project continues to validate the Windows 0.1.6 installer and
+the published desktop workflow.
 
 ## License
 

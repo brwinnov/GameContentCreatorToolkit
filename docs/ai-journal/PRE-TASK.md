@@ -49,14 +49,14 @@ current worktree because source code and Git history remain authoritative.
   implemented.
 - The 2026-08-28 source security audit found 0 critical, 2 high, 5 medium, and
   2 low issues. See `docs/SECURITYAUDIT.md` for evidence and remediation tasks.
-- The repository is MIT-licensed. SignPath Foundation application answers,
-  artifact configurations, code-signing/privacy/download policies, conditional
-  tagged MSI submission, signature verification, and release checksums are
-  prepared. The application is submitted; acceptance and dashboard/repository
-  credential setup remain.
-- Security remediation now precedes feature work: fix the deprecated Bash App
-  ID code-injection path (`SEC-001`), then implement release signing
-  (`SEC-002`) before broad distribution.
+- The repository is MIT-licensed. SignPath Foundation declined the free OSS
+  code-signing application; the project is not paying for a commercial
+  SignPath subscription and has no active code-signing plan. See
+  `docs/CODE_SIGNING_POLICY.md`. All CI SignPath steps and the `.signpath/`
+  templates were removed.
+- `SEC-001` (Bash App ID code-injection path) is resolved by removal.
+  `SEC-002` (unsigned installers) remains open with no viable remediation
+  route; releases stay explicitly unsigned by policy.
 - After security work, the next product choice is metadata sidecars (`STM-02`),
   screenshots/key art (`STM-03`), or batch input (`STM-04`).
 
@@ -70,11 +70,9 @@ current worktree because source code and Git history remain authoritative.
   capture are out of scope.
 - Project-owned source is distributed under MIT. Third-party components retain
   their own licenses and must not be signed as project-owned binaries.
-- Tagged Windows releases are explicitly labeled unsigned while repository
-  variable `SIGNPATH_ENABLED` is not `true`. After SignPath setup, set it to
-  `true` to require manual approval and timestamped signature verification.
-- SignPath's free OSS tier documents RPM signing but not DEB signing; do not
-  claim signed Linux packages until each format has a verified implementation.
+- Tagged Windows releases are explicitly labeled unsigned; this project has no
+  active code-signing plan (see `docs/CODE_SIGNING_POLICY.md`). Do not claim
+  signed Windows or Linux packages.
 - Clipboard reads must occur only after a user clicks `PASTE` and should request
   only Tauri's text-read capability.
 - Steam history and ffmpeg settings live under the stable Tauri identifier's
@@ -112,20 +110,25 @@ current worktree because source code and Git history remain authoritative.
 
 ## Current Release
 
-- Version `0.1.6` is the current repository release state in source metadata.
-- The 0.1.5 tag was created on the wrong commit and was never published; the
-  shipped work was carried forward into 0.1.6.
-- The active release workflow still needs a verified GitHub release check from an
-  authenticated environment before the 0.1.6 tag/release metadata can be claimed as
-  fully confirmed. This workspace does not have release access to verify the GH
-  release artifact list or the published SHA-256 values directly.
-- The pinned Windows UpgradeCode remains
-  `{1DDF37BF-062F-547C-A167-DAB5D7867081}`; the release validation and checksum
-  checks must be performed against the actual GitHub release assets before any
-  final claim is made.
-- The project still uses unsigned tagged builds while the SignPath application is
-  pending. Repository variable `SIGNPATH_ENABLED=false` remains the current safe
-  setting unless a verified SignPath setup is completed.
+- Version `0.1.6` is the current repository release state in source metadata,
+  verified live against GitHub on 2026-09-03.
+- Tag `v0.1.6` points at commit `bc7c412` ("Release 0.1.6"), the commit that
+  built the published artifacts. The tag briefly drifted to a later commit
+  after a housekeeping push retriggered the tagged workflow; it was moved back
+  to `bc7c412` and force-pushed, which retriggered a rebuild from that same
+  commit and republished the release assets (new hashes, same source).
+- The GitHub release is marked `Latest`, is not a draft or prerelease, and
+  contains exactly one MSI, one `.deb`, one `.rpm`, and `SHA256SUMS`. The
+  downloaded MSI's SHA-256 matches its `SHA256SUMS` entry
+  (`1e208cdf...ec2637`), and its `ProductVersion` (`0.1.6`) and `UpgradeCode`
+  (`{1DDF37BF-062F-547C-A167-DAB5D7867081}`) match source.
+- The 0.1.5 tag was created on the wrong commit and was never published; it
+  and its GitHub release no longer exist (already removed before this
+  housekeeping pass). The shipped work was carried forward into 0.1.6.
+- Releases are unsigned by policy with no active code-signing plan — see
+  `docs/CODE_SIGNING_POLICY.md`. All SignPath CI steps and the `.signpath/`
+  directory were removed; the repository variable `SIGNPATH_ENABLED` and any
+  related secrets are unused and can be deleted from repository settings.
 - Dependency audits currently report 0 known npm and Rust vulnerabilities.
   RustSec reports 18 non-vulnerability warnings, including a Linux GTK
   unsoundness advisory; these are tracked under `SEC-007`.

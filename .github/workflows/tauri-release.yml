@@ -109,72 +109,8 @@ jobs:
 
           "Verified MSI $productVersion with UpgradeCode $upgradeCode"
 
-      - name: Upload unsigned Windows artifact for SignPath
-        if: matrix.platform == 'windows' && startsWith(github.ref, 'refs/tags/v') && vars.SIGNPATH_ENABLED == 'true'
-        id: upload-unsigned-windows
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: windows-unsigned-artifacts
-          path: app/src-tauri/target/release/bundle/msi/*.msi
-          if-no-files-found: error
-
-      - name: Prepare SignPath parameters
-        if: matrix.platform == 'windows' && startsWith(github.ref, 'refs/tags/v') && vars.SIGNPATH_ENABLED == 'true'
-        id: signpath-parameters
-        shell: pwsh
-        run: |
-          $version = '${{ github.ref_name }}'.TrimStart('v')
-          if ($version -notmatch '^\d+\.\d+\.\d+$') {
-            throw "Invalid release version '$version'."
-          }
-          "version=$version" >> $env:GITHUB_OUTPUT
-
-      - name: Submit Windows artifact to SignPath
-        if: matrix.platform == 'windows' && startsWith(github.ref, 'refs/tags/v') && vars.SIGNPATH_ENABLED == 'true'
-        uses: SignPath/github-action-submit-signing-request@c92b958760219087e01f8d67a1669ed57afe2627 # v2.3
-        with:
-          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
-          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
-          project-slug: game-content-creator-toolkit
-          signing-policy-slug: release-signing
-          artifact-configuration-slug: windows-msi
-          github-artifact-id: ${{ steps.upload-unsigned-windows.outputs.artifact-id }}
-          wait-for-completion: true
-          wait-for-completion-timeout-in-seconds: 3600
-          output-artifact-directory: signed-artifacts
-          parameters: |
-            version: ${{ toJSON(steps.signpath-parameters.outputs.version) }}
-
-      - name: Verify signed Windows MSI
-        if: matrix.platform == 'windows' && startsWith(github.ref, 'refs/tags/v') && vars.SIGNPATH_ENABLED == 'true'
-        shell: pwsh
-        run: |
-          $packages = @(Get-ChildItem signed-artifacts -Recurse -Filter *.msi)
-          if ($packages.Count -ne 1) {
-            throw "Expected one signed MSI; found $($packages.Count)."
-          }
-          $signature = Get-AuthenticodeSignature $packages[0].FullName
-          if ($signature.Status -ne 'Valid') {
-            throw "MSI signature is not valid: $($signature.StatusMessage)"
-          }
-          if ($signature.SignerCertificate.Subject -notmatch 'SignPath Foundation') {
-            throw "Unexpected signer: $($signature.SignerCertificate.Subject)"
-          }
-          if (-not $signature.TimeStamperCertificate) {
-            throw 'MSI signature does not contain a timestamp.'
-          }
-          "Verified $($packages[0].Name) signed by $($signature.SignerCertificate.Subject)"
-
-      - name: Upload signed Windows artifact
-        if: matrix.platform == 'windows' && startsWith(github.ref, 'refs/tags/v') && vars.SIGNPATH_ENABLED == 'true'
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: windows-artifacts
-          path: signed-artifacts/**/*.msi
-          if-no-files-found: error
-
-      - name: Upload unsigned Windows release artifact
-        if: matrix.platform == 'windows' && startsWith(github.ref, 'refs/tags/v') && vars.SIGNPATH_ENABLED != 'true'
+      - name: Upload Windows release artifact
+        if: matrix.platform == 'windows' && startsWith(github.ref, 'refs/tags/v')
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: windows-artifacts

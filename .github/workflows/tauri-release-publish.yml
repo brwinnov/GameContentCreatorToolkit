@@ -47,29 +47,16 @@ jobs:
           ls -l
 
       - name: Prepare release notice
-        env:
-          SIGNPATH_ENABLED: ${{ vars.SIGNPATH_ENABLED }}
         run: |
-          if [ "$SIGNPATH_ENABLED" = "true" ]; then
-            cat > RELEASE-NOTES.md <<'EOF'
-          The Windows MSI is Authenticode-signed through
-          [SignPath.io](https://about.signpath.io/), with a certificate from
-          [SignPath Foundation](https://signpath.org/).
-
-          See the [code signing policy](https://github.com/brwinnov/GameContentCreatorToolkit/blob/main/docs/CODE_SIGNING_POLICY.md)
-          and verify every download against `SHA256SUMS`.
-          EOF
-          else
-            cat > RELEASE-NOTES.md <<'EOF'
-          **Unsigned preview release:** the Windows MSI is not yet
-          Authenticode-signed while the SignPath Foundation application is
-          pending. Windows may display an Unknown Publisher warning. Download
+          cat > RELEASE-NOTES.md <<'EOF'
+          **Unsigned release:** the Windows MSI is not Authenticode-signed.
+          This project has no code-signing plan and releases are unsigned by
+          policy. Windows may display an Unknown Publisher warning. Download
           only from this GitHub repository and verify every file against
           `SHA256SUMS`.
 
           See the [code signing policy](https://github.com/brwinnov/GameContentCreatorToolkit/blob/main/docs/CODE_SIGNING_POLICY.md).
           EOF
-          fi
 
       - name: Create GitHub release
         id: create_release

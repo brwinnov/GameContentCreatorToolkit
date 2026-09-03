@@ -74,31 +74,15 @@ The tag build embeds the GitHub run number as the app build number. After both
 jobs pass, `Publish Tauri release artifacts` downloads artifacts from that exact
 workflow run and creates the GitHub Release for the tag.
 
-Repository variable `SIGNPATH_ENABLED` selects the tagged Windows release path.
-While it is not `true`, CI publishes the MSI with an explicit unsigned warning
-and a verified checksum manifest. When it is `true`, the workflow uploads the
-unsigned MSI only as temporary SignPath input, waits for manual approval, and
-requires a valid timestamped SignPath Foundation signature before exposing the
-Windows release artifact.
-
-The initial SignPath Foundation application was refused due to insufficient
-public-reputation signals, so the current default is still an explicit unsigned
-path rather than a waiting or pending signed path. The project is not paying for
-a commercial SignPath subscription, and no signed Windows installer is claimed
-until SignPath accepts a future application or a different supported signing
-route becomes available.
-
-SignPath setup names, dashboard steps, and artifact configuration templates are
-documented in [`.signpath/README.md`](../.signpath/README.md). Keep
-`SIGNPATH_ENABLED=false` until `SIGNPATH_ORGANIZATION_ID`,
-`SIGNPATH_API_TOKEN`, dashboard resources, and the GitHub App are configured.
-The signed path fails closed once enabled.
+CI publishes the MSI unsigned, with an explicit unsigned warning in the release
+notes and a verified `SHA256SUMS` checksum manifest. The project has no active
+code-signing plan — see [`CODE_SIGNING_POLICY.md`](CODE_SIGNING_POLICY.md) for
+why (SignPath Foundation declined the free OSS application, and a commercial
+SignPath subscription is not free).
 
 The publisher generates and verifies `SHA256SUMS` for the MSI, DEB, and RPM
-before creating the release. SignPath Foundation's free OSS service supports
-RPM signing when a GPG policy is provided, but SignPath documents embedded DEB
-signing as Advanced-only. Linux package signatures therefore remain separate
-follow-up work and must not be claimed until configured and verified.
+before creating the release. Linux package signatures are not implemented and
+must not be claimed until configured and verified.
 
 Normal pushes to `main` build validation artifacts but do not publish a release.
 
@@ -109,14 +93,12 @@ Before sharing a release, confirm:
 1. The tag points to the release commit.
 2. Windows and Linux jobs completed successfully.
 3. The publish workflow completed successfully.
-4. The release notes accurately identify whether the MSI is signed or unsigned.
+4. The release notes carry the unsigned warning.
 5. The release contains one current MSI, `.deb`, `.rpm`, and `SHA256SUMS`.
-6. If signing is enabled, the MSI has a valid timestamped SignPath Foundation
-   signature.
-7. `sha256sum --check SHA256SUMS` passes for every release artifact.
-8. Package filenames and displayed application version match the tag.
-9. Release notes accurately describe working and placeholder features.
-10. The repository worktree is clean and synchronised with `origin/main`.
+6. `sha256sum --check SHA256SUMS` passes for every release artifact.
+7. Package filenames and displayed application version match the tag.
+8. Release notes accurately describe working and placeholder features.
+9. The repository worktree is clean and synchronised with `origin/main`.
 
 ## Auto-Update Future Work
 

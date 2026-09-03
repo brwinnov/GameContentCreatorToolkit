@@ -4,6 +4,102 @@ Add completed tasks directly below this introduction, newest first. Keep each
 entry concise enough for another AI assistant to understand what changed and
 what remains without reading a chat transcript.
 
+## 2026-09-03 - Complete housekeeping, fix v0.1.6 tag, drop SignPath
+
+### Request
+
+Continue the housekeeping pass started earlier the same day (see the entry
+below): verify the earlier session's completion claims, finish anything left
+undone, and — a new decision made mid-session — remove SignPath entirely
+since the Foundation application was declined and a paid subscription is not
+an option.
+
+### Findings from re-verification
+
+The prior "Housekeeping and 0.1.6 repo repair" entry below overstated what
+landed. On re-checking against the live repo:
+
+- Items 1, 4, 5, 6 (AGENTS/CLAUDE restoration, PowerShell retirement, Linux
+  wording, `Claude outputs/` cleanup) were genuinely complete.
+- Item 7 (CSS dedupe, PLAN.md `STM-`/`SRC-`/`MED-`/`PKT-` cross-references and
+  "why Tauri" rationale, spelling sweep) was **not** done despite the entry
+  claiming it was.
+- The `v0.1.6` git tag had drifted: it pointed at `fb25037` (the housekeeping
+  commit itself) instead of `bc7c412` ("Release 0.1.6", the commit that built
+  the published MSI/DEB/RPM). This was not caught by the prior session.
+
+### Decisions
+
+- Finish item 7 as originally scoped, plus a broader spelling sweep of
+  currently-maintained docs (not just the two lines the prompt named).
+  Historical `CHANGELOG.md`/`POST-TASK.md`/`archive/` entries, code
+  identifiers, and third-party proper terms (SignPath "organization", Apple
+  "notarization") are left as written.
+- Move `v0.1.6` back to `bc7c412` with the maintainer's explicit go-ahead
+  (`git tag -d` / re-tag / `git push --force`, run by the maintainer directly
+  since the session's auto-mode classifier blocks tag force-pushes).
+- Drop SignPath entirely rather than leaving it as a dormant future option:
+  the Foundation application was declined for insufficient public reputation,
+  and a commercial SignPath subscription is out of scope. `SEC-002` stays
+  open with no viable remediation route instead of a "pending" status.
+
+### Changed
+
+- `app/src/style.css`: merged the duplicate `.footer-actions` rule.
+- `docs/PLAN.md`: restored the "why Tauri" rationale paragraph and added
+  `STM-`/`SRC-`/`MED-`/`PKT-` cross-references to `docs/FEATURES.md` in each
+  roadmap phase.
+- Spelling (English, Ireland) fixed in `CHANGELOG.md`, `README.md`,
+  `docs/FEATURES.md`, `docs/HOWRELEASE.md`, `docs/TODO.md`,
+  `docs/SECURITYAUDIT.md`, `docs/repo-update.md`, `docs/ai-journal/PRE-TASK.md`.
+- `docs/SECURITYAUDIT.md`: corrected the SEC-001 resolution commit citation
+  (was `bc6d041`, actually `fb25037`); restored the missing `#### SEC-002`
+  heading; rewrote the SEC-002 remediation direction to reflect no active
+  signing plan.
+- Moved the `v0.1.6` tag (local and `origin`) from `fb25037` back to
+  `bc7c412`. This retriggered `tauri-release.yml` (it fires on any push to a
+  `v*` tag) and republished the v0.1.6 release assets from the same source
+  commit — new file hashes, same code.
+- Removed SignPath entirely: deleted `.signpath/` (application answers,
+  README, artifact-configuration XML); removed the five SignPath-conditional
+  steps from `.github/workflows/tauri-release.yml` and the signed/unsigned
+  branch in `tauri-release-publish.yml` (now always publishes the unsigned
+  notice); dropped the `/.signpath/` line from `.github/CODEOWNERS`; rewrote
+  `docs/CODE_SIGNING_POLICY.md`, and updated `docs/DOWNLOADS.md`,
+  `docs/HOWRELEASE.md`, `README.md`, `CONTRIBUTING.md`, `docs/FEATURES.md`
+  (`REL-05` marked `dropped`), and `docs/ai-journal/PRE-TASK.md` to state
+  releases are unsigned by policy with no active signing plan.
+- Refreshed `docs/ai-journal/PRE-TASK.md`'s Current Release block with the
+  live-verified `v0.1.6` facts (see Validation).
+
+### Validation
+
+- Full baseline passed: `cargo fmt --check`, `cargo clippy --all-targets -- -D
+  warnings` (clean), `cargo test` (10/10), `node --check app/src/main.js`,
+  `markdownlint-cli2` over all tracked Markdown (0 issues, 23 files after
+  removing the two `.signpath/` docs).
+- Manually reviewed both edited workflow YAML files line by line (no
+  `actionlint` binary available in this environment).
+- Live GitHub verification via `gh`: `v0.1.6` tag (local and remote) resolves
+  to commit `bc7c412`. The release is `Latest`, not a draft/prerelease, and
+  has exactly one MSI, one `.deb`, one `.rpm`, and `SHA256SUMS`. Downloaded
+  the MSI and confirmed its SHA-256 matches `SHA256SUMS`
+  (`1e208cdf...ec2637`) and, via `WindowsInstaller.Installer` COM, that
+  `ProductVersion=0.1.6` and `UpgradeCode={1DDF37BF-062F-547C-A167-DAB5D7867081}`.
+  Confirmed on GitHub that the `v0.1.5` tag and release no longer exist.
+  Watched the retriggered `tauri-release.yml`/`tauri-release-publish.yml` run
+  to completion (`gh run watch`, exit 0) before re-verifying the release.
+
+### Remaining
+
+- Repository variable `SIGNPATH_ENABLED` and any `SIGNPATH_API_TOKEN` /
+  `SIGNPATH_ORGANIZATION_ID` secrets are now unused and can be deleted from
+  GitHub repository settings; not done here since that's a settings change
+  outside the git repo.
+- `docs/SECURITYAUDIT.md`'s dated 2026-08-28 severity table (High: 2) was left
+  as a historical snapshot rather than recounted, consistent with how the
+  rest of that dated section is treated.
+
 ## 2026-09-03 - Housekeeping and 0.1.6 repo repair
 
 ### Request
@@ -165,12 +261,11 @@ installation. Prepare the work as version `0.1.5`.
 
 ### Remaining
 
-- Installing the `0.1.5` MSI over the installed `0.1.4` still needs a live
-  elevated confirmation of the single Apps & features entry; the MSI upgrade
-  tables were verified statically.
 - `Show in folder` was confirmed on Windows; the Linux `xdg-open` path is still
   unverified.
-- Build and publish the `0.1.5` MSI through the tag-driven workflow.
+- `0.1.5` was never published: its tag was created on the wrong commit and its
+  GitHub release shipped no installer. This work was carried forward and
+  shipped as part of `0.1.6` instead; the `0.1.5` tag/release were removed.
 
 ## 2026-08-28 - Temporary Unsigned Release Path
 

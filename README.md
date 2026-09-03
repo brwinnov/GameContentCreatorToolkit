@@ -6,8 +6,8 @@ or copy-pasting ephemeral blob URLs.
 
 The current app is a working desktop workflow for Steam trailer downloads, with
 ffmpeg management and persistent user settings built into the UI. It is designed
-for Windows first, with Linux packaging supported in the release pipeline and the
-same core workflow available in the codebase.
+for Windows first, and Linux DEB/RPM packaging is currently paused until the
+0.1.6 desktop release has been validated and is considered stable.
 
 ## What the app does now
 
@@ -68,7 +68,8 @@ npm run tauri build
 ```
 
 Outputs are generated under the Tauri bundle directories for the selected target.
-The release pipeline currently targets Windows MSI plus Linux package bundles.
+For the current phase, the release focus is Windows MSI builds only. Linux DEB/RPM
+release builds are intentionally paused until the 0.1.6 validation pass is complete.
 
 ## Project structure
 
@@ -106,6 +107,10 @@ The release pipeline currently targets Windows MSI plus Linux package bundles.
 This repository includes a tag-driven release flow for shipping the desktop app
 artifacts. The current app version is kept in sync across the Tauri project and
 frontend metadata, and each release is published with GitHub release notes.
+
+At this time, the Linux DEB/RPM release path is intentionally suspended. The
+project is validating the Windows 0.1.6 release first and will revisit Linux
+packaging only once that path is considered reliable and tested.
 
 ## License
 

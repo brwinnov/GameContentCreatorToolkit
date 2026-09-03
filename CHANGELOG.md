@@ -14,6 +14,8 @@ All notable changes to this project. Format loosely follows
 - Removed the legacy PowerShell Steam downloader from the repository and retired
   its references in the GitHub-facing documentation so the project presents the
   desktop-first workflow as the active path.
+- Paused Linux DEB/RPM release builds until the 0.1.6 Windows desktop app has
+  been validated in active use; Windows MSI remains the current release target.
 
 ## [0.1.5] — 2026-09-03
 

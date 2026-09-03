@@ -49,9 +49,10 @@ also select an existing ffmpeg/ffprobe pair.
 npm run tauri build
 ```
 
-Output lands in `src-tauri/target/release/bundle/`. Public Windows releases use
-one MSI installer; Linux releases use `.deb` and `.rpm` bundles. macOS
-`.app`/DMG is not part of the active roadmap.
+Output lands in `src-tauri/target/release/bundle/`. The current release focus is
+on the Windows MSI only. Linux `.deb` and `.rpm` builds are intentionally paused
+until the 0.1.6 validation pass is complete. macOS `.app`/DMG is not part of the
+active roadmap.
 
 ## Icons
 

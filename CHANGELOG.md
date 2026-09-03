@@ -11,6 +11,9 @@ All notable changes to this project. Format loosely follows
   release identity are presented consistently across the interface.
 - Kept the locally running build aligned to the same version metadata used in the
   published release files.
+- Removed the legacy PowerShell Steam downloader from the repository and retired
+  its references in the GitHub-facing documentation so the project presents the
+  desktop-first workflow as the active path.
 
 ## [0.1.5] — 2026-09-03
 

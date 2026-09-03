@@ -70,16 +70,6 @@ npm run tauri build
 Outputs are generated under the Tauri bundle directories for the selected target.
 The release pipeline currently targets Windows MSI plus Linux package bundles.
 
-## Legacy script
-
-The repository also retains the original PowerShell helper as a script-based
-fallback and reference implementation:
-
-- `scripts/pwsh/download_steam_trailers.ps1`
-
-This script remains useful for direct Steam trailer downloads outside the desktop
-app, but the main active workflow is now the Tauri desktop experience.
-
 ## Project structure
 
 ```text

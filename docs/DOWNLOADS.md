@@ -9,13 +9,14 @@ Each release provides a Windows MSI and Linux DEB/RPM packages together with a
 
 The project uses free code signing provided by
 [SignPath.io](https://about.signpath.io/), certificate by
-[SignPath Foundation](https://signpath.org/). Each signed release is built by
-GitHub Actions from this repository and manually approved under the project's
-[code signing policy](CODE_SIGNING_POLICY.md).
+[SignPath Foundation](https://signpath.org/), when that service becomes
+available to this project. The initial Foundation application was declined
+because the project does not yet meet SignPath's minimum public-reputation and
+visibility threshold.
 
-The SignPath Foundation application has been submitted and is pending. Until
-the integration is accepted and activated, preview releases are published as
-unsigned and their release notes state that clearly. Windows may display an
+At this time, releases remain explicitly unsigned. The project is not paying
+for a commercial SignPath subscription to bypass the Foundation gate, and no
+signed Windows installer is presently being claimed. Windows may display an
 Unknown Publisher warning. Download only from this repository and verify the
 published checksum before running an unsigned installer.
 

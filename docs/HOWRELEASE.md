@@ -81,6 +81,13 @@ unsigned MSI only as temporary SignPath input, waits for manual approval, and
 requires a valid timestamped SignPath Foundation signature before exposing the
 Windows release artifact.
 
+The initial SignPath Foundation application was refused due to insufficient
+public-reputation signals, so the current default is still an explicit unsigned
+path rather than a waiting or pending signed path. The project is not paying for
+a commercial SignPath subscription, and no signed Windows installer is claimed
+until SignPath accepts a future application or a different supported signing
+route becomes available.
+
 SignPath setup names, dashboard steps, and artifact configuration templates are
 documented in [`.signpath/README.md`](../.signpath/README.md). Keep
 `SIGNPATH_ENABLED=false` until `SIGNPATH_ORGANIZATION_ID`,

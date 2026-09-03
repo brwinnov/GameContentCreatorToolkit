@@ -1,18 +1,21 @@
 # Code Signing Policy
 
 Game Content Creator Toolkit intends to use SignPath Foundation's free
-open-source code-signing service after the project and its build configuration
-have been accepted. Until that integration is complete, release artifacts must
-not be represented as SignPath-signed.
+open-source code-signing service when the project meets the reputation and
+visibility requirements for that program. The initial Foundation application was
+not accepted: SignPath indicated that the project does not yet have enough public
+trust and community signals for a Foundation certificate.
 
-The Foundation application has been submitted. While it is pending, the
-maintainer may publish preview releases that are explicitly labeled unsigned,
-include checksums, and originate from tagged GitHub Actions builds. Set the
-repository variable `SIGNPATH_ENABLED` to `true` only after the SignPath
-resources and credentials are configured and an end-to-end signing test passes.
+The project therefore continues with a clearly labeled unsigned release policy.
+Preview and tagged release artifacts may be published only as explicitly
+unsigned builds, with checksums and release notes stating that status. The
+repository variable `SIGNPATH_ENABLED` remains `false` unless a future SignPath
+setup is accepted and verified end to end. We are not paying for a commercial
+SignPath subscription to bypass the Foundation policy gate.
 
 Free code signing provided by [SignPath.io](https://about.signpath.io/),
-certificate by [SignPath Foundation](https://signpath.org/).
+certificate by [SignPath Foundation](https://signpath.org/), remains an
+aspirational path for the future rather than a current release requirement.
 
 ## Team Roles
 

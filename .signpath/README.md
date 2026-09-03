@@ -24,8 +24,13 @@ signing as Advanced-only, so no unsupported DEB configuration is included.
 
 ## Dashboard Setup
 
-1. Submit the answers in [`APPLICATION.md`](APPLICATION.md) through the
-   [SignPath Foundation application](https://signpath.org/apply).
+This directory remains a future-activation template for SignPath, not a current
+signed-release path. The initial SignPath Foundation application was declined,
+so the project is continuing with explicit unsigned releases while the project
+builds public reputation and visibility.
+
+1. Keep the application answers in [`APPLICATION.md`](APPLICATION.md) as a
+   reapplication template for a future SignPath Foundation attempt.
 2. After acceptance, add the predefined `GitHub.com` trusted build system to
    the SignPath organization and project.
 3. Install the [SignPath GitHub App](https://github.com/apps/signpath) for this
@@ -53,6 +58,7 @@ remain unsigned validation artifacts and are never published as releases.
 Repository files cannot complete these SignPath conditions:
 
 - SignPath Foundation must accept the application and project reputation.
+- The project must have sufficient public visibility and community trust.
 - Every maintainer must enable MFA for GitHub and SignPath.
 - The approver must manually approve every signing request.
 - SignPath must issue and control the Foundation certificate.

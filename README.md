@@ -1,146 +1,122 @@
 # Game Content Creator Toolkit
 
-A toolkit for game-review content creators: pull official media assets
-(trailers, screenshots, key art) straight from a game's store/social pages,
-for use as press-kit source material alongside your own gameplay recording.
+A Tauri desktop app for game-review content creators who want to pull official
+Steam trailer media into local MP4 files without hunting through browser DevTools
+or copy-pasting ephemeral blob URLs.
 
-**Status:** BETA — the Tauri desktop Steam downloader and legacy PowerShell
-script work; additional media sources remain planned. See
-[`docs/PLAN.md`](docs/PLAN.md) for the full roadmap and
-[`docs/TODO.md`](docs/TODO.md) for the
-active checklist.
+The current app is a working desktop workflow for Steam trailer downloads, with
+ffmpeg management and persistent user settings built into the UI. It is designed
+for Windows first, with Linux packaging supported in the release pipeline and the
+same core workflow available in the codebase.
 
-**Current release target:** one Windows MSI plus Linux `.deb` and `.rpm`
-packages. macOS is intentionally deferred while Windows/Linux stabilize.
+## What the app does now
 
----
+- Download official Steam trailer listings from Steam's public API
+- Paste a Steam URL or App ID directly into the desktop app
+- Save trailers as local MP4 files in a chosen output folder
+- Detect and manage ffmpeg/ffprobe, including a verified managed install path
+  on Windows
+- Store recent Steam history and output-location preferences locally
+- Provide a Settings view for ffmpeg status, install/update actions, and theme
+  customization
+- Keep the desktop UI aligned with the current app version and release metadata
 
-## What works today: Steam Trailer Downloader
+This project is not only a script anymore; the main experience is now the
+Tauri desktop application in the `app/` folder.
 
-Downloads all trailers for any Steam game as local MP4 files, straight from
-Steam's API — no browser, no DevTools, no manual URL hunting.
+## Current status
 
-**Requires:** PowerShell 7+, ffmpeg
+Current release: `0.1.6`
 
-### Setup
+The shipped desktop experience includes:
 
-1. **ffmpeg** — install via `winget install ffmpeg` / `scoop install ffmpeg` /
-   `choco install ffmpeg` / `brew install ffmpeg`, or the script will look in
-   a few common install paths automatically.
-2. **Execution policy** (first run only, if PowerShell blocks the script):
+- Steam trailer search and download flow
+- Steam history and durable local settings
+- ffmpeg install, repair, and update handling in Settings
+- Windows-friendly media-engine detection and fallback behavior
+- Tauri desktop layout with Home, Steam, and Settings views
 
-   ```powershell
-   Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
-   ```
+Planned areas for later milestones include additional media sources such as
+screenshots/key art and other social platforms, but the core Steam trailer
+workflow is the primary implemented feature today.
 
-3. **Find the Steam App ID** — it's the number in the store URL:
-   `https://store.steampowered.com/app/3041230/Windrose/` → App ID `3041230`
+## Quick start
 
-### Usage
+### Prerequisites
 
-```powershell
-.\scripts\pwsh\download_steam_trailers.ps1 -AppId <ID> [options]
-```
+- Node.js LTS
+- Rust + Cargo
+- On Windows: WebView2 and the Visual Studio C++ build tools if your machine is
+  missing the default dependencies for Tauri
 
-| Parameter    | Type   | Default      | Description                                |
-|--------------|--------|--------------|----------------------------------------------|
-| `-AppId`     | string | *(required)* | Steam App ID from the store URL             |
-| `-OutputDir` | string | `.\trailers` | Folder to save MP4 files into               |
-| `-Latest`    | int    | 0 (all)      | Download only the N most recent trailers    |
-| `-Oldest`    | int    | 0 (all)      | Download only the N oldest trailers         |
-| `-ListOnly`  | switch | off          | Print the trailer list and exit — no download |
+### Run the desktop app in development
 
-No `-Latest`/`-Oldest` flag → interactive mode: lists trailers, then prompts
-`[A]` all / `[1]` latest / `[#]` pick one.
-
-Examples:
+From the `app/` directory:
 
 ```powershell
-# See what's available first
-.\scripts\pwsh\download_steam_trailers.ps1 -AppId 275850 -ListOnly
-
-# Grab everything
-.\scripts\pwsh\download_steam_trailers.ps1 -AppId 3041230 -OutputDir .\images
-
-# Just the newest one
-.\scripts\pwsh\download_steam_trailers.ps1 -AppId 275850 -Latest 1 -OutputDir .\NMS_trailers
+npm install
+npm run tauri dev
 ```
 
-Already-downloaded files are skipped automatically — safe to re-run after an
-interruption.
+This launches the real desktop app with the Rust backend wired up.
 
-### How it works (short version)
+### Build a desktop bundle
 
-Steam no longer serves direct `.mp4`/`.webm` trailer files — everything's a
-DASH stream now. The script queries the public `appdetails` API (with
-age-gate cookies so 18+ titles work without a Steam login), gets each
-trailer's `dash_h264` manifest, and has ffmpeg reassemble the chunks into a
-single MP4 with `-c copy` (no re-encoding, so it's fast and lossless).
+```powershell
+cd app
+npm run tauri build
+```
 
----
+Outputs are generated under the Tauri bundle directories for the selected target.
+The release pipeline currently targets Windows MSI plus Linux package bundles.
 
-## What's next
+## Legacy script
 
-Full detail in [`docs/PLAN.md`](docs/PLAN.md), short version:
+The repository also retains the original PowerShell helper as a script-based
+fallback and reference implementation:
 
-1. Harden the Steam script (batch mode, screenshots/art, metadata sidecars)
-2. Complete packaged Windows/Linux smoke tests and Windows code signing
-3. Add screenshots/key art, metadata sidecars, and batch workflows
-4. Add YouTube, TikTok, Instagram, and Facebook downloader modules via yt-dlp
-5. Revisit macOS packaging in a later milestone once the Windows/Linux release
-   path is stabilized
+- `scripts/pwsh/download_steam_trailers.ps1`
 
-## Release workflow
+This script remains useful for direct Steam trailer downloads outside the desktop
+app, but the main active workflow is now the Tauri desktop experience.
 
-The repo includes GitHub Actions workflows that build release artifacts for the
-current supported platforms:
+## Project structure
 
-- Windows: MSI installer
-- Linux: `.deb` and `.rpm` packages
+```text
+.
+├── app/
+│   ├── package.json
+│   ├── src/
+│   └── src-tauri/
+├── scripts/
+│   ├── bash/
+│   └── pwsh/
+├── docs/
+├── CHANGELOG.md
+├── AGENTS.md
+├── CLAUDE.md
+├── README.md
+├── SECURITYAUDIT.md
+├── PLAN.md
+├── TODO.md
+└── LICENSE
+```
 
-See:
+## Documentation
 
-- [`.github/workflows/tauri-release.yml`](.github/workflows/tauri-release.yml)
-- [`.github/workflows/tauri-release-publish.yml`](.github/workflows/tauri-release-publish.yml)
+- `CHANGELOG.md` — release notes and shipped changes
+- `docs/PLAN.md` — roadmap and future milestones
+- `docs/TODO.md` — current active work
+- `docs/SECURITYAUDIT.md` — security notes and audit findings
+- `docs/ai-journal/` — project handoff notes and AI session context
+- `app/README.md` — app-level setup and development notes
 
-The build runs in GitHub-hosted runners, so the Linux packages are produced in an
-Ubuntu environment instead of a local WSL2 setup.
+## Release notes and packaging
 
-## Project docs
-
-- [`docs/DOWNLOADS.md`](docs/DOWNLOADS.md) — downloads and verification
-- [`.signpath/README.md`](.signpath/README.md) — SignPath setup and templates
-- [`docs/PLAN.md`](docs/PLAN.md) — full roadmap
-- [`docs/FEATURES.md`](docs/FEATURES.md) — feature backlog and next-step ideas
-- [`docs/TODO.md`](docs/TODO.md) — active checklist
-- [`docs/SECURITYAUDIT.md`](docs/SECURITYAUDIT.md) — security audit and tasks
-- [`CHANGELOG.md`](CHANGELOG.md) — what's shipped
-- [`docs/repo-update.md`](docs/repo-update.md) — application auto-update plan
-- [`docs/PRIVACY.md`](docs/PRIVACY.md) — data and network-request policy
-- [`CONTRIBUTING.md`](CONTRIBUTING.md) — contribution workflow
-- [`SECURITY.md`](SECURITY.md) — private vulnerability reporting policy
-- [`AGENTS.md`](AGENTS.md) — model-neutral repository instructions
-- [`docs/ai-journal/`](docs/ai-journal/) — canonical pre-task context and
-   post-task AI handoff journal
-- [`ai-journal/`](ai-journal/) — historical AI-assisted work-session records
-
-## Code signing policy
-
-The project intends to use SignPath Foundation after its application and build
-configuration are accepted. Free code signing provided by
-[SignPath.io](https://about.signpath.io/), certificate by
-[SignPath Foundation](https://signpath.org/). Releases are built from this
-repository and each signing request requires manual approval.
-
-While the submitted application is pending, preview releases are explicitly
-labeled unsigned. Windows may show an Unknown Publisher warning; download only
-from this repository and verify the published `SHA256SUMS` manifest.
-
-- Committer and reviewer: [Barry Reilly (@brwinnov)](https://github.com/brwinnov)
-- Approver: [Barry Reilly (@brwinnov)](https://github.com/brwinnov)
-- Full policy: [`docs/CODE_SIGNING_POLICY.md`](docs/CODE_SIGNING_POLICY.md)
-- Privacy policy: [`docs/PRIVACY.md`](docs/PRIVACY.md)
+This repository includes a tag-driven release flow for shipping the desktop app
+artifacts. The current app version is kept in sync across the Tauri project and
+frontend metadata, and each release is published with GitHub release notes.
 
 ## License
 
-Game Content Creator Toolkit is licensed under the [MIT License](LICENSE).
+This project is licensed under the [MIT License](LICENSE).

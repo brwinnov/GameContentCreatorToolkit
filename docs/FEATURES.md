@@ -115,7 +115,7 @@ scope.
 | SRC-03 | Instagram downloader | planned | P2 | L | Public content initially; authentication and cookies need a separate security design. |
 | SRC-04 | Facebook downloader | planned | P2 | L | Public content initially; expect upstream variability. |
 | SRC-05 | Generic yt-dlp URL handler | idea | P2 | M | Powerful but harder to support; expose detected extractor and clear compatibility status. |
-| SRC-06 | Subtitle/caption download | idea | P2 | M | Useful for transcription and review research where available. |
+| SRC-06 | Subtitle/caption download | idea | P2 | M | Pairs with SRC-01 as a "fetch captions" checkbox on YouTube. yt-dlp fetches manual (`--write-subs`) and auto-generated (`--write-auto-sub`) captions; note which kind was retrieved since auto-caption accuracy varies. Post-process VTT/SRT into two outputs: a clean, timestamp-free transcript (`.txt`) sized for feeding an AI harness reviewing the video's content, and a lightweight `[mm:ss] text` timestamped variant for citing specific moments. Needs a language-selection default (video's original audio language, with a picker) and a per-video output folder alongside the download, matching the `STM-11` per-game folder convention. |
 | SRC-07 | Playlist/channel batch import | idea | P3 | L | Requires safeguards against unexpectedly large jobs. |
 
 ## Creator Workflow

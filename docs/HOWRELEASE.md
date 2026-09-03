@@ -116,7 +116,7 @@ Before sharing a release, confirm:
 7. `sha256sum --check SHA256SUMS` passes for every release artifact.
 8. Package filenames and displayed application version match the tag.
 9. Release notes accurately describe working and placeholder features.
-10. The repository worktree is clean and synchronized with `origin/main`.
+10. The repository worktree is clean and synchronised with `origin/main`.
 
 ## Auto-Update Future Work
 

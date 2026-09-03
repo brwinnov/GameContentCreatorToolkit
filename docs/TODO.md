@@ -47,7 +47,7 @@ migration or release review.
       create shareable Windows test builds, and add Steam game-name search.
 - [x] Store trailer downloads in a safe per-game folder (`STM-11`) named
       `<SteamID> <Safe_Game_Name>`, reusing an existing same-ID folder. Rust
-      tests cover sanitization, length limits, ID validation, and reuse.
+      tests cover sanitisation, length limits, ID validation, and reuse.
 - [x] Add the Steam `PASTE` button (`STM-10`): on a user click, read text from
       the clipboard into the existing Steam URL/App ID/game-name field. Request
       only clipboard text-read permission; handle empty, denied, and unavailable

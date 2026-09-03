@@ -20,7 +20,7 @@ These are the strongest candidates for the next focused milestone:
 | ID | Feature | Why now |
 | --- | --- | --- |
 | STM-03 | Screenshots and key art | High creator value using data already available from Steam. |
-| STM-02 | Metadata sidecars | Small, useful foundation for organization and Resolve workflows. |
+| STM-02 | Metadata sidecars | Small, useful foundation for organisation and Resolve workflows. |
 | STM-04 | Batch game input | Turns one-game lookup into a repeatable production workflow. |
 | APP-03 | Download queue and batch mode | Turns the app from a one-game tool into a repeatable production utility. |
 | DEP-07 | Third-party notices | Required before broader distribution of managed ffmpeg downloads. |
@@ -88,18 +88,18 @@ starting auto-update, social downloaders, and a major UI rewrite together.
 
 | ID | Feature | Status | Priority | Effort | Dependencies / decision notes |
 | --- | --- | ---: | ---: | ---: | --- |
-| APP-01 | Common downloader-module interface | planned | P1 | L | Normalize source detection, item metadata, selection, progress, cancellation, and results. |
+| APP-01 | Common downloader-module interface | planned | P1 | L | Normalise source detection, item metadata, selection, progress, cancellation, and results. |
 | APP-02 | Persistent settings | planned | P1 | M | Download folder, quality, naming, tool paths, channel, and update preferences. |
 | APP-03 | Download queue and batch mode | ready | P1 | L | Add queue states, concurrency limits, pause/cancel/retry, and session recovery. |
 | APP-04 | Concurrent downloads | idea | P2 | M | Requires limits and bandwidth/error behavior; start conservatively. |
 | APP-05 | Resume interrupted downloads | idea | P2 | L | Depends on source/range support and safe partial-file tracking. |
 | APP-06 | Duplicate detection across runs | planned | P1 | M | Use source identity plus optional hashes; distinguish skip, replace, and versioned copy. |
 | APP-07 | Naming templates | idea | P2 | M | Tokens such as game, asset type, date, resolution, and source. |
-| APP-08 | Automatic folder organization | planned | P1 | M | Build on the shipped `STM-11` game folder with `Trailers`, `Screenshots`, `Art`, and `Metadata` subfolders plus a configurable template. |
+| APP-08 | Automatic folder organisation | planned | P1 | M | Build on the shipped `STM-11` game folder with `Trailers`, `Screenshots`, `Art`, and `Metadata` subfolders plus a configurable template. |
 | APP-09 | Disk-space and destination validation | planned | P1 | S | Check writable destination and estimated space before starting. |
 | APP-10 | In-app logs and diagnostics export | idea | P2 | M | Redact usernames/paths where possible; make support reports user-controlled. |
 | APP-11 | Native notifications | idea | P3 | S | Completion/failure notifications, configurable and non-spammy. |
-| APP-12 | Theme picker and editor | shipped | P3 | M | Includes Default and NavyWhite1, seven-color editing, Save As/update/rename/delete, protected Default, and a startup-theme toggle. |
+| APP-12 | Theme picker and editor | shipped | P3 | M | Includes Default and NavyWhite1, seven-colour editing, Save As/update/rename/delete, protected Default, and a startup-theme toggle. |
 | APP-13 | Keyboard and screen-reader accessibility | planned | P1 | M | Focus order, labels, contrast, reduced motion, and keyboard-complete workflows. |
 
 ## Additional Platforms
@@ -123,7 +123,7 @@ scope.
 | ID | Feature | Status | Priority | Effort | Dependencies / decision notes |
 | --- | --- | ---: | ---: | ---: | --- |
 | CRT-01 | Contact sheet generation | idea | P1 | M | Create timestamped visual sheets for quickly reviewing trailers/screenshots. |
-| CRT-02 | Proxy and thumbnail generation | planned | P2 | L | Presets optimized for fast preview and Resolve import. |
+| CRT-02 | Proxy and thumbnail generation | planned | P2 | L | Presets optimised for fast preview and Resolve import. |
 | CRT-03 | DaVinci Resolve bin export | idea | P2 | L | Start with folder/bin metadata before attempting timeline generation. |
 | CRT-04 | DaVinci Resolve timeline export | idea | P3 | XL | Requires a clearly defined editorial workflow and interchange format. |
 | CRT-05 | Asset favorites and review status | idea | P2 | M | Mark shortlist/rejected/used without modifying source media. |

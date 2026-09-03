@@ -10,6 +10,12 @@ The active product is the desktop app in `app/`, not a standalone PowerShell
 helper. The legacy script has been retired from the supported path and removed
 from the public-facing documentation.
 
+**Stack decision: Tauri** (Rust shell + web-tech UI). Rationale: strong native
+installer support for Windows and Linux package formats, small binaries, and
+Tauri's "sidecar" feature is a direct fit for bundling/calling external
+binaries (ffmpeg, yt-dlp) as subprocesses without reinventing download logic
+in Rust.
+
 ## Current state (as of 2026-09-03)
 
 - Active product: Tauri desktop application in `app/`
@@ -33,12 +39,12 @@ Completed in the current app:
 - ffmpeg management and diagnostics in Settings
 - Windows-managed install path for verified ffmpeg/ffprobe
 
-Further plan items:
+Further plan items (see `docs/FEATURES.md` for full detail):
 
-- batch mode for multiple App IDs
-- richer metadata sidecars for downloaded trailers
-- screenshots and art capture from the same source data
-- better retry and validation handling for transient network/API errors
+- batch mode for multiple App IDs (`STM-04`)
+- richer metadata sidecars for downloaded trailers (`STM-02`)
+- screenshots and art capture from the same source data (`STM-03`)
+- better retry and validation handling for transient network/API errors (`STM-05`)
 
 ### Phase 2 — Desktop app maturity
 
@@ -52,21 +58,23 @@ This is the current focus of the project.
 ### Phase 3 — Additional downloader modules
 
 The long-term plan remains to add social-media downloaders behind a common
-interface, with yt-dlp as the likely engine when those integrations ship.
+interface, with yt-dlp as the likely engine when those integrations ship. See
+`docs/FEATURES.md` for the full source-by-source breakdown.
 
-- YouTube
-- TikTok
-- Instagram
-- Facebook
+- YouTube (`SRC-01`)
+- TikTok (`SRC-02`)
+- Instagram (`SRC-03`)
+- Facebook (`SRC-04`)
 
 ### Phase 4 — Creator workflow features
 
 These features are future-facing and should not be mistaken for the current
-shipped capability set:
+shipped capability set. See `docs/FEATURES.md` for the `MED-` and `PKT-` IDs.
 
-- key art and screenshot collection
-- media project organisation for press-kit workflows
-- simple editing and export tools for still-image assets
+- key art and screenshot collection (`STM-03`)
+- press-kit folder and project import (`PKT-01`)
+- background removal and mask refinement for still images (`MED-02`, `MED-03`)
+- transparent asset export (`MED-04`)
 - later integration with external editing workflows
 
 ## Explicitly deferred / not current

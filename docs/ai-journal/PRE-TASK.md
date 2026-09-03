@@ -30,7 +30,7 @@ current worktree because source code and Git history remain authoritative.
   `n8.1-latest` LGPL pair without elevation, with progress, cancel, staged
   swap, and a manifest-hash update check (`Install latest` / `Up to date`).
 - Settings provides editable Default and NavyWhite1 themes plus user-created
-  themes. Explicit updates, Save As, rename/delete, color customizations, and
+  themes. Explicit updates, Save As, rename/delete, colour customisations, and
   startup choice persist in WebView storage; Default cannot be renamed/deleted.
 
 ## Current Planning State
@@ -87,7 +87,7 @@ current worktree because source code and Git history remain authoritative.
   only `ffmpeg.exe` and `ffprobe.exe` into a staging folder, and replaces
   `tools\ffmpeg\bin` only after the new binary passes `-version`.
 - `settings.json` `ffmpegPath` means a user-chosen custom path only; the
-  managed copy is recognized by location. `managedArchiveSha256` records the
+  managed copy is recognised by location. `managedArchiveSha256` records the
   installed archive hash for the update check.
 - Installer progress is emitted on `media-engine-progress`; the Steam
   `download-progress` event is unchanged.

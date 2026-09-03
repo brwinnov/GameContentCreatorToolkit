@@ -18,7 +18,7 @@ Windows remains the primary validation target for day-to-day installer testing.
   on Windows
 - Store recent Steam history and output-location preferences locally
 - Provide a Settings view for ffmpeg status, install/update actions, and theme
-  customization
+  customisation
 - Keep the desktop UI aligned with the current app version and release metadata
 
 This project is not only a script anymore; the main experience is now the

@@ -45,7 +45,7 @@ All notable changes to this project. Format loosely follows
   or cancelled install leaves the previous copy untouched. The final swap is
   retried briefly so a virus scanner holding the freshly extracted binary does
   not fail the install.
-- The managed copy is recognized by location; `settings.json` `ffmpegPath` now
+- The managed copy is recognised by location; `settings.json` `ffmpegPath` now
   means a user-chosen custom path only, and a managed install clears it.
 - The Steam download button is disabled with a tooltip while ffmpeg is missing,
   broken, or installing, and the Steam banner shows install progress.

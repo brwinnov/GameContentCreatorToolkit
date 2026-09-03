@@ -151,7 +151,7 @@ signature verification to be disabled.
 
 Tauri update signing and Windows Authenticode signing solve different problems:
 
-- **Tauri updater signature:** proves an update was authorized by this project
+- **Tauri updater signature:** proves an update was authorised by this project
   before an installed copy accepts it.
 - **Authenticode signature:** establishes publisher identity to Windows and
   reduces SmartScreen warnings.
@@ -241,7 +241,7 @@ create or alter a public GitHub Release.
 - Check shortly after startup, without delaying the main window.
 - Cache the last successful check time.
 - Check no more than once every 6 hours automatically.
-- Add small random jitter if the user base grows, avoiding synchronized traffic.
+- Add small random jitter if the user base grows, avoiding synchronised traffic.
 - Always permit a manual check.
 - Use a reasonable timeout and handle offline/proxy failures quietly.
 
@@ -354,7 +354,7 @@ Before enabling updates for public users:
 ### Phase 1: Release integrity
 
 - Lock dependencies.
-- Standardize versions and artifact names.
+- Standardise versions and artifact names.
 - Build only from tags for public releases.
 - Add checksums, signing secrets, and draft-release verification.
 

@@ -102,8 +102,9 @@ required or stored by this project.**
   Existing mitigation: the script is deprecated and normal documented inputs are
   numeric Steam IDs. This is not sufficient while the script remains shipped.
 
-  This issue is resolved by removal in commit `bc6d041` when the legacy Bash and
-  PowerShell downloader paths were retired from the supported project state.
+  This issue is resolved by removal in commit `fb25037`, which deleted
+  `scripts/bash/download_steam_trailers.sh` along with the rest of the legacy
+  PowerShell/Bash downloader paths.
 
   The release workflow publishes MSI, DEB, and RPM files without an application
   signature or detached release signature. HTTPS and GitHub access controls help
@@ -274,7 +275,7 @@ required or stored by this project.**
   ### Verified controls
 
   - Tauri process launches use argument arrays rather than a shell.
-  - Game and trailer names are sanitized before becoming filesystem components;
+  - Game and trailer names are sanitised before becoming filesystem components;
     numeric App IDs are enforced before creating game folders.
   - Managed ffmpeg downloads use HTTPS, SHA-256 comparison, streamed archive-size
     enforcement, per-tool extraction limits, safe enclosed ZIP names, and an

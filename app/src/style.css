@@ -1265,12 +1265,6 @@ input[type="text"]::placeholder { color: var(--text-muted); }
   margin-right: 12px;
 }
 
-.footer-actions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
 .settings-header {
   display: flex;
   justify-content: space-between;

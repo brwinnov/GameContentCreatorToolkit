@@ -85,3 +85,10 @@ but the `.ps1` script has no such issue — use it instead.
 | `-ListOnly`  | off          | Print numbered list, no download                     |
 
 No flags = interactive mode: lists trailers then prompts to pick All / Latest / by number.
+
+## Language
+
+All user-facing text (UI labels, status messages, errors, docs) uses English
+(Ireland) spelling: `colour`, `customise`, `initialise`, `organise`, `centre`.
+Code identifiers, CSS properties, and third-party API names keep their
+original spelling.

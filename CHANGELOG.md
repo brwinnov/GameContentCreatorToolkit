@@ -3,6 +3,51 @@
 All notable changes to this project. Format loosely follows
 [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.1.6] — 2026-09-03
+
+### Changed
+
+- Cleaned the Home, Steam, and Settings metadata layout so the app version and
+  release identity are presented consistently across the interface.
+- Kept the locally running build aligned to the same version metadata used in the
+  published release files.
+
+## [0.1.5] — 2026-09-03
+
+### Added
+
+- Managed ffmpeg install progress: a phase label and determinate progress bar
+  (download MB, checksum, extraction, self-test), a Cancel action, and inline
+  success or failure feedback with Retry and Locate actions.
+- Media-engine source badge (Managed, System, Custom), `Show in folder` and
+  `Copy path` actions, and a `broken` state for an executable that exists but
+  cannot run or a saved custom path that no longer exists.
+- Cheap update check for the managed build that compares the stored archive
+  SHA-256 with BtbN's manifest, so the Settings action reads `Install latest`
+  or `Up to date`, `Switch to managed build`, or `Repair` as appropriate.
+
+### Changed
+
+- The managed Windows ffmpeg now downloads the BtbN `n8.1-latest` LGPL release
+  build instead of the `master-latest` nightly, so the version displays as a
+  plain release number such as `8.1.2` rather than a git-describe string.
+- Installs download and extract into a staging folder and only replace
+  `tools\ffmpeg\bin` after the new `ffmpeg.exe` passes `-version`; a failed
+  or cancelled install leaves the previous copy untouched. The final swap is
+  retried briefly so a virus scanner holding the freshly extracted binary does
+  not fail the install.
+- The managed copy is recognized by location; `settings.json` `ffmpegPath` now
+  means a user-chosen custom path only, and a managed install clears it.
+- The Steam download button is disabled with a tooltip while ffmpeg is missing,
+  broken, or installing, and the Steam banner shows install progress.
+- The main window requests clipboard text-write permission for `Copy path`.
+- Condensed the Settings Appearance section: the theme picker and startup
+  toggle share one row, the colour editor is collapsed behind a
+  `Customise colours` disclosure (state remembered), colour pickers are a
+  compact pill strip, and the name field and actions share one row.
+- UI text uses English (Ireland) spelling (`colours`, `customise`,
+  `initialise`).
+
 ## [0.1.4] — 2026-08-28
 
 ### Added

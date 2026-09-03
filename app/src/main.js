@@ -22,6 +22,31 @@ if (hasTauri) {
     { appId: "12345", name: "No Man's Sky 2" },
   ];
 
+  // Preview-only media engine. Append `#ffmpeg=notFound|broken|managed|system`
+  // to the URL to start from a given state; `#ffmpeg=managed-update` starts
+  // managed with a newer build available.
+  const MANAGED_PATH = "C:\\Users\\barry\\AppData\\Local\\com.ackrosgaming.gcc\\tools\\ffmpeg\\bin\\ffmpeg.exe";
+  const mockMediaEngine = {
+    state: (location.hash.match(/ffmpeg=([\w-]+)/) || [])[1] || "system",
+    update: null,
+    customPath: "F:\\ffmpeg\\bin\\ffmpeg.exe",
+    cancelled: false,
+    status() {
+      if (this.state === "managed-update") { this.state = "managed"; this.update = true; }
+      if (this.state === "notFound") {
+        return { status: "notFound", source: null, path: null, version: null, versionDisplay: null, error: null, updateAvailable: null };
+      }
+      if (this.state === "broken") {
+        return { status: "broken", source: "custom", path: "F:\\old\\ffmpeg.exe", version: null, versionDisplay: null, error: "The ffmpeg at F:\\old\\ffmpeg.exe is no longer available.", updateAvailable: null };
+      }
+      if (this.state === "managed") {
+        return { status: "ready", source: "managed", path: MANAGED_PATH, version: "8.1", versionDisplay: "8.1", error: null, updateAvailable: this.update };
+      }
+      const path = this.state === "custom" ? this.customPath : "F:\\ffmpeg\\bin\\ffmpeg.exe";
+      return { status: "ready", source: this.state === "custom" ? "custom" : "system", path, version: "N-120041-g64fce7202c-20250626", versionDisplay: "nightly build · 26 Jun 2025", error: null, updateAvailable: null };
+    },
+  };
+
   invoke = async (cmd, args) => {
     await wait(400);
     if (cmd === "fetch_steam_trailers") {
@@ -35,13 +60,42 @@ if (hasTauri) {
     }
     if (cmd === "get_default_download_dir") return "C:\\Users\\barry\\Downloads";
     if (cmd === "pick_folder") return "G:\\1_Presskit";
-    if (cmd === "find_ffmpeg") return { path: "F:\\ffmpeg\\bin\\ffmpeg.exe", version: "N-120041-g64fce7202c-20250626" };
+    if (cmd === "find_ffmpeg") return mockMediaEngine.status();
     if (cmd === "load_history") return [];
     if (cmd === "save_history") return null;
-    if (cmd === "set_ffmpeg_path") return { path: args.path, version: "N-120041-g64fce7202c-20250626" };
-    if (cmd === "install_ffmpeg") return { path: "C:\\Users\\barry\\AppData\\Local\\com.ackrosgaming.gcc\\tools\\ffmpeg\\bin\\ffmpeg.exe", version: "N-120041-g64fce7202c-20250626" };
+    if (cmd === "set_ffmpeg_path") {
+      if (args.path == null) throw "Choose the ffmpeg executable, not its folder.";
+      mockMediaEngine.state = "custom";
+      mockMediaEngine.customPath = args.path;
+      return mockMediaEngine.status();
+    }
+    if (cmd === "install_ffmpeg") {
+      const emit = window.__mockEmit;
+      mockMediaEngine.cancelled = false;
+      const total = 98 * 1024 * 1024;
+      emit("media-engine-progress", { phase: "checksums", bytesDone: 0 });
+      await wait(400);
+      for (let done = 0; done <= total; done += total / 20) {
+        if (mockMediaEngine.cancelled) throw "Installation cancelled.";
+        emit("media-engine-progress", { phase: "downloading", bytesDone: Math.round(done), bytesTotal: total });
+        await wait(120);
+      }
+      for (const phase of ["verifying", "extracting", "testing"]) {
+        emit("media-engine-progress", { phase, bytesDone: total, bytesTotal: total });
+        await wait(350);
+      }
+      mockMediaEngine.state = "managed";
+      mockMediaEngine.update = false;
+      return mockMediaEngine.status();
+    }
+    if (cmd === "cancel_ffmpeg_install") { mockMediaEngine.cancelled = true; return null; }
+    if (cmd === "check_ffmpeg_update") {
+      await wait(600);
+      return mockMediaEngine.state === "managed" ? mockMediaEngine.update : null;
+    }
+    if (cmd === "reveal_ffmpeg_folder") return null;
     if (cmd === "get_app_metadata") {
-      return { releaseType: "ALPHA", version: "0.1.4", build: "preview", creator: "AckrosGaming" };
+      return { releaseType: "ALPHA", version: "0.1.6", build: "local", creator: "AckrosGaming" };
     }
     if (cmd === "download_trailers") {
       const emit = window.__mockEmit;
@@ -133,7 +187,6 @@ const BUILT_IN_THEMES = {
 
 const themePicker = document.getElementById("theme-picker");
 const themeDefaultToggle = document.getElementById("theme-default-toggle");
-const themeDefaultStatus = document.getElementById("theme-default-status");
 const themeReset = document.getElementById("theme-reset");
 const themeEditorStatus = document.getElementById("theme-editor-status");
 const themeNameInput = document.getElementById("theme-name");
@@ -215,7 +268,7 @@ function updateThemeControls() {
   themePicker.value = activeThemeId;
   themeDefaultToggle.checked = activeThemeId === defaultThemeId;
   themeDefaultToggle.disabled = activeThemeId === "default" && defaultThemeId === "default";
-  themeDefaultStatus.textContent = `${getThemeName(defaultThemeId)} is the startup theme`;
+  themeDefaultToggle.closest(".toggle-control").title = `${getThemeName(defaultThemeId)} is the startup theme`;
   themeNameInput.value = getThemeName(activeThemeId);
   themeRename.disabled = activeThemeId === "default";
   themeDelete.disabled = activeThemeId === "default";
@@ -248,7 +301,7 @@ themeColorInputs.forEach((input) => {
     const colorName = input.dataset.themeColor;
     draftColors[colorName] = input.value;
     document.documentElement.style.setProperty(`--${colorName}`, input.value);
-    setThemeEditorStatus("Unsaved color changes");
+    setThemeEditorStatus("Unsaved colour changes");
   });
 });
 
@@ -259,7 +312,7 @@ themeReset.addEventListener("click", () => {
   Object.entries(draftColors).forEach(([name, value]) => {
     document.documentElement.style.setProperty(`--${name}`, value);
   });
-  setThemeEditorStatus(customThemes[activeThemeId] ? "Reverted to saved colors" : "Factory colors ready to update");
+  setThemeEditorStatus(customThemes[activeThemeId] ? "Reverted to saved colours" : "Factory colours ready to update");
   updateThemeControls();
 });
 
@@ -333,6 +386,23 @@ themeDelete.addEventListener("click", () => {
 });
 
 applyTheme(activeThemeId);
+
+// ── Theme editor disclosure ─────────────────────────────────────────────
+const THEME_EDITOR_OPEN_KEY = "ggt-theme-editor-open";
+const themeEditor = document.getElementById("theme-editor");
+const themeCustomise = document.getElementById("theme-customise");
+
+function setThemeEditorOpen(open, persist = true) {
+  themeEditor.hidden = !open;
+  themeCustomise.setAttribute("aria-expanded", String(open));
+  themeCustomise.classList.toggle("is-open", open);
+  if (persist) {
+    try { localStorage.setItem(THEME_EDITOR_OPEN_KEY, open ? "1" : "0"); } catch {}
+  }
+}
+
+themeCustomise.addEventListener("click", () => setThemeEditorOpen(themeEditor.hidden));
+setThemeEditorOpen((() => { try { return localStorage.getItem(THEME_EDITOR_OPEN_KEY) === "1"; } catch { return false; } })(), false);
 
 document.querySelectorAll(".rail-tab").forEach((tab) => {
   tab.addEventListener("click", () => activateTab(tab.dataset.tab));
@@ -517,45 +587,331 @@ async function initOutputDir() {
 }
 initOutputDir();
 
-let ffmpegInfo = null;
+// ── Media engine (ffmpeg) ──────────────────────────────────────────────────
+// One render function owns every label, enabled flag and visibility decision
+// for the Settings row and the Steam-tab banner, driven by the backend's
+// MediaEngineStatus plus a local `installing` flag.
 
-function updateFfmpegStatus(info) {
-  ffmpegInfo = info;
-  const el = document.getElementById("settings-ffmpeg-path");
-  el.textContent = info?.path || "Not found";
-  document.getElementById("settings-ffmpeg-version").innerHTML = info
-    ? `<span class="status-dot is-ready"></span>ffmpeg ${escapeHtml(info.version)}`
-    : '<span class="status-dot is-warning"></span>ffmpeg required';
-  document.getElementById("steam-ffmpeg-warning").hidden = Boolean(info);
+const mediaEngineRow = document.getElementById("media-engine-row");
+const mediaEngineDot = mediaEngineRow.querySelector(".status-dot");
+const mediaEngineVersionText = document.getElementById("settings-ffmpeg-version-text");
+const mediaEngineVersionLine = document.getElementById("settings-ffmpeg-version");
+const mediaEngineSource = document.getElementById("settings-ffmpeg-source");
+const mediaEngineDetail = document.getElementById("settings-ffmpeg-detail");
+const mediaEngineProgress = document.getElementById("settings-ffmpeg-progress");
+const mediaEngineProgressFill = document.getElementById("settings-ffmpeg-progress-fill");
+const mediaEngineProgressLabel = document.getElementById("settings-ffmpeg-progress-label");
+const mediaEngineNotice = document.getElementById("settings-ffmpeg-notice");
+const mediaEnginePrimary = document.getElementById("settings-ffmpeg-primary");
+const mediaEngineChange = document.getElementById("settings-change-ffmpeg");
+const steamWarning = document.getElementById("steam-ffmpeg-warning");
+const steamWarningTitle = document.getElementById("steam-ffmpeg-warning-title");
+const steamWarningText = document.getElementById("steam-ffmpeg-warning-text");
+const steamWarningProgress = document.getElementById("steam-ffmpeg-progress");
+const steamWarningProgressFill = document.getElementById("steam-ffmpeg-progress-fill");
+const steamWarningProgressLabel = document.getElementById("steam-ffmpeg-progress-label");
+const steamWarningPrimary = document.getElementById("steam-ffmpeg-primary");
+
+const SOURCE_LABELS = { managed: "Managed", system: "System", custom: "Custom" };
+const PHASE_LABELS = {
+  checksums: "Fetching checksums",
+  downloading: "Downloading",
+  verifying: "Verifying checksum",
+  extracting: "Extracting",
+  testing: "Testing",
+};
+
+let mediaEngine = null; // last MediaEngineStatus from the backend
+let mediaEngineInstalling = false;
+let mediaEngineNoticeTimer = null;
+let mediaEnginePreInstall = null; // status before an install began, for cancel
+
+function ffmpegReady() {
+  return Boolean(mediaEngine && mediaEngine.status === "ready");
 }
 
-invoke("find_ffmpeg").then(updateFfmpegStatus);
+function formatMegabytes(bytes) {
+  return `${(bytes / 1048576).toFixed(bytes < 10 * 1048576 ? 1 : 0)} MB`;
+}
 
-async function installFfmpeg() {
-  const buttons = [...document.querySelectorAll(".install-ffmpeg")];
-  buttons.forEach((button) => {
-    button.disabled = true;
-    button.textContent = "Downloading and verifying...";
+function setMediaEngineNotice(text, { error = false, actions = [] } = {}) {
+  clearTimeout(mediaEngineNoticeTimer);
+  mediaEngineNotice.innerHTML = "";
+  mediaEngineNotice.classList.toggle("is-error", error);
+  if (!text) {
+    mediaEngineNotice.hidden = true;
+    return;
+  }
+  mediaEngineNotice.appendChild(document.createTextNode(text));
+  actions.forEach(({ label, onClick }) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "link-btn";
+    button.textContent = label;
+    button.addEventListener("click", onClick);
+    mediaEngineNotice.appendChild(button);
   });
-  try {
-    const path = await invoke("install_ffmpeg");
-    updateFfmpegStatus(path);
-  } catch (error) {
-    updateFfmpegStatus(ffmpegInfo);
-    document.getElementById("settings-ffmpeg-path").textContent = String(error);
-  } finally {
-    buttons.forEach((button) => {
-      button.disabled = false;
-      button.textContent = button.closest(".dependency-warning") ? "Install ffmpeg" : "Install";
-    });
+  mediaEngineNotice.hidden = false;
+  if (!error && !actions.length) {
+    mediaEngineNoticeTimer = setTimeout(() => (mediaEngineNotice.hidden = true), 4000);
   }
 }
 
-document.querySelectorAll(".install-ffmpeg").forEach((button) => {
-  button.addEventListener("click", installFfmpeg);
-});
+function renderMediaEngineProgress(progress) {
+  const targets = [
+    [mediaEngineProgress, mediaEngineProgressFill, mediaEngineProgressLabel],
+    [steamWarningProgress, steamWarningProgressFill, steamWarningProgressLabel],
+  ];
+  targets.forEach(([container, fill, label]) => {
+    container.hidden = !mediaEngineInstalling;
+    if (!mediaEngineInstalling) return;
+    const phase = progress?.phase || "checksums";
+    const total = progress?.bytesTotal;
+    const done = progress?.bytesDone || 0;
+    let text = PHASE_LABELS[phase] || "Working";
+    if (phase === "downloading") {
+      text += total ? ` · ${formatMegabytes(done)} / ${formatMegabytes(total)}` : ` · ${formatMegabytes(done)}`;
+    }
+    const determinate = phase !== "checksums" && (phase !== "downloading" || total);
+    fill.classList.toggle("is-indeterminate", !determinate);
+    if (phase === "downloading" && total) {
+      fill.style.width = `${Math.min(100, (done / total) * 100)}%`;
+    } else if (determinate) {
+      fill.style.width = "100%";
+    } else {
+      fill.style.width = "";
+    }
+    label.textContent = text;
+  });
+}
 
-document.getElementById("settings-change-ffmpeg").addEventListener("click", async () => {
+function renderMediaEngine() {
+  const info = mediaEngine;
+  const status = mediaEngineInstalling ? "installing" : info ? info.status : "checking";
+  const source = info?.source || null;
+  mediaEngineRow.dataset.status = status;
+
+  // Line 1: dot, version, source badge.
+  mediaEngineDot.className = "status-dot";
+  let versionText = "Checking ffmpeg";
+  if (status === "installing") {
+    mediaEngineDot.classList.add("is-checking");
+    versionText = info?.status === "ready" ? `ffmpeg ${info.versionDisplay} · updating` : "Installing ffmpeg";
+  } else if (status === "ready") {
+    mediaEngineDot.classList.add("is-ready");
+    versionText = `ffmpeg ${info.versionDisplay || info.version}`;
+  } else if (status === "broken") {
+    mediaEngineDot.classList.add("is-warning");
+    versionText = "ffmpeg needs attention";
+  } else if (status === "notFound") {
+    mediaEngineDot.classList.add("is-warning");
+    versionText = "ffmpeg required";
+  } else {
+    mediaEngineDot.classList.add("is-checking");
+  }
+  mediaEngineVersionText.textContent = versionText;
+  mediaEngineVersionLine.title =
+    info?.version && info.version !== info.versionDisplay ? `ffmpeg version ${info.version}` : "";
+  mediaEngineSource.hidden = !source || status === "notFound";
+  mediaEngineSource.textContent = SOURCE_LABELS[source] || "";
+  mediaEngineSource.title =
+    source === "managed"
+      ? "Installed and updated by this app"
+      : source === "system"
+        ? "Found on this computer's PATH or a common install folder"
+        : source === "custom"
+          ? "Chosen in Settings"
+          : "";
+
+  // Line 2: path / error / actions. Hidden while the progress bar is showing.
+  mediaEngineDetail.innerHTML = "";
+  mediaEngineDetail.classList.remove("is-error");
+  mediaEngineDetail.title = "";
+  mediaEngineDetail.hidden = status === "installing";
+  if (status === "checking") {
+    mediaEngineDetail.textContent = "Detecting…";
+  } else if (status === "notFound") {
+    mediaEngineDetail.textContent = "Not found";
+  } else if (status === "broken") {
+    mediaEngineDetail.textContent = info.error || "ffmpeg cannot be started.";
+    mediaEngineDetail.classList.add("is-error");
+  } else if (status === "ready" && source === "custom") {
+    mediaEngineDetail.textContent = info.path;
+  } else if (status === "ready") {
+    mediaEngineDetail.title = info.path;
+    const reveal = document.createElement("button");
+    reveal.type = "button";
+    reveal.className = "link-btn";
+    reveal.textContent = "Show in folder";
+    reveal.addEventListener("click", () => {
+      invoke("reveal_ffmpeg_folder").catch((error) => setMediaEngineNotice(String(error), { error: true }));
+    });
+    const copy = document.createElement("button");
+    copy.type = "button";
+    copy.className = "link-btn";
+    copy.textContent = "Copy path";
+    copy.addEventListener("click", async () => {
+      try {
+        if (hasTauri && window.__TAURI__.clipboardManager) {
+          await window.__TAURI__.clipboardManager.writeText(info.path);
+        } else {
+          await navigator.clipboard.writeText(info.path);
+        }
+        setMediaEngineNotice("Path copied");
+      } catch (error) {
+        setMediaEngineNotice(`Could not copy: ${error}`, { error: true });
+      }
+    });
+    mediaEngineDetail.append(reveal, copy);
+  }
+
+  // Buttons.
+  let primaryLabel = "Install";
+  let primaryDisabled = false;
+  let primaryTitle = "";
+  let changeLabel = "Change";
+  if (status === "installing") {
+    primaryLabel = "Cancel";
+  } else if (status === "checking") {
+    primaryDisabled = true;
+  } else if (status === "notFound") {
+    changeLabel = "Locate…";
+  } else if (status === "broken") {
+    primaryLabel = "Repair";
+  } else if (source === "managed") {
+    if (info.updateAvailable === false) {
+      primaryLabel = "Up to date";
+      primaryDisabled = true;
+      primaryTitle = `ffmpeg ${info.versionDisplay || info.version} is the latest managed build`;
+    } else {
+      primaryLabel = "Install latest";
+      primaryTitle = info.updateAvailable ? "A newer build is available" : "Check for a newer build and install it";
+    }
+  } else {
+    primaryLabel = "Switch to managed build";
+    primaryTitle = "Install a verified copy managed by this app";
+  }
+  mediaEnginePrimary.textContent = primaryLabel;
+  mediaEnginePrimary.disabled = primaryDisabled;
+  mediaEnginePrimary.title = primaryTitle;
+  mediaEngineChange.textContent = changeLabel;
+  mediaEngineChange.disabled = status === "installing" || status === "checking";
+
+  // Steam banner + download gating.
+  const needsAttention = status === "notFound" || status === "broken" || status === "installing";
+  steamWarning.hidden = !needsAttention;
+  if (status === "installing") {
+    steamWarningTitle.textContent = "Installing ffmpeg…";
+    steamWarningText.textContent = "Trailer downloads will be available as soon as the install finishes.";
+    steamWarningPrimary.textContent = "Cancel";
+  } else if (status === "broken") {
+    steamWarningTitle.textContent = "ffmpeg needs attention before downloading";
+    steamWarningText.textContent = info.error || "The configured ffmpeg cannot be started.";
+    steamWarningPrimary.textContent = "Repair ffmpeg";
+  } else {
+    steamWarningTitle.textContent = "ffmpeg is required before downloading";
+    steamWarningText.textContent = "Install a verified user-local copy, or choose an existing ffmpeg executable in Settings.";
+    steamWarningPrimary.textContent = "Install ffmpeg";
+  }
+  steamWarningPrimary.classList.toggle("btn-primary", status !== "installing");
+  steamWarningPrimary.classList.toggle("btn-ghost", status === "installing");
+  renderMediaEngineProgress(null);
+  updateSelectionState();
+}
+
+function applyMediaEngineStatus(status) {
+  mediaEngine = status;
+  renderMediaEngine();
+}
+
+async function refreshMediaEngine() {
+  try {
+    applyMediaEngineStatus(await invoke("find_ffmpeg"));
+  } catch (error) {
+    applyMediaEngineStatus({ status: "broken", source: null, path: null, version: null, versionDisplay: null, error: String(error), updateAvailable: null });
+  }
+  if (mediaEngine?.source === "managed" && mediaEngine.updateAvailable == null) {
+    // Background update check — never blocks first paint.
+    invoke("check_ffmpeg_update")
+      .then((available) => {
+        if (mediaEngine?.source === "managed" && !mediaEngineInstalling) {
+          mediaEngine.updateAvailable = available;
+          renderMediaEngine();
+        }
+      })
+      .catch(() => {});
+  }
+}
+
+async function installFfmpeg() {
+  if (mediaEngineInstalling) return;
+  mediaEngineInstalling = true;
+  mediaEnginePreInstall = mediaEngine;
+  setMediaEngineNotice(null);
+  renderMediaEngine();
+  renderMediaEngineProgress({ phase: "checksums", bytesDone: 0 });
+  try {
+    const status = await invoke("install_ffmpeg");
+    mediaEngineInstalling = false;
+    applyMediaEngineStatus(status);
+    setMediaEngineNotice("ffmpeg ready ✓");
+  } catch (error) {
+    mediaEngineInstalling = false;
+    const message = String(error);
+    mediaEngine = mediaEnginePreInstall;
+    renderMediaEngine();
+    if (/cancelled/i.test(message)) {
+      setMediaEngineNotice("Installation cancelled");
+    } else {
+      setMediaEngineNotice(message, {
+        error: true,
+        actions: [
+          { label: "Retry", onClick: installFfmpeg },
+          { label: "Locate existing ffmpeg…", onClick: chooseFfmpeg },
+        ],
+      });
+    }
+  } finally {
+    mediaEnginePreInstall = null;
+  }
+}
+
+async function cancelFfmpegInstall() {
+  try {
+    await invoke("cancel_ffmpeg_install");
+    mediaEngineProgressLabel.textContent = "Cancelling…";
+    steamWarningProgressLabel.textContent = "Cancelling…";
+  } catch (error) {
+    setMediaEngineNotice(String(error), { error: true });
+  }
+}
+
+async function onMediaEnginePrimary() {
+  if (mediaEngineInstalling) return cancelFfmpegInstall();
+  const info = mediaEngine;
+  if (info?.status === "ready" && info.source === "managed" && info.updateAvailable == null) {
+    // Cheap manifest check first so "Install latest" never re-downloads a
+    // build the user already has.
+    mediaEnginePrimary.disabled = true;
+    mediaEnginePrimary.textContent = "Checking…";
+    let available = null;
+    try {
+      available = await invoke("check_ffmpeg_update");
+    } catch {
+      available = null;
+    }
+    if (mediaEngine === info) info.updateAvailable = available;
+    renderMediaEngine();
+    if (available === false) {
+      setMediaEngineNotice("Already on the latest build");
+      return;
+    }
+  }
+  return installFfmpeg();
+}
+
+async function chooseFfmpeg() {
+  if (mediaEngineInstalling) return;
   const picked = hasTauri
     ? await window.__TAURI__.dialog.open({
         multiple: false,
@@ -564,11 +920,23 @@ document.getElementById("settings-change-ffmpeg").addEventListener("click", asyn
     : "F:\\ffmpeg\\bin\\ffmpeg.exe";
   if (!picked) return;
   try {
-    updateFfmpegStatus(await invoke("set_ffmpeg_path", { path: picked }));
+    applyMediaEngineStatus(await invoke("set_ffmpeg_path", { path: picked }));
+    setMediaEngineNotice(null);
   } catch (error) {
-    document.getElementById("settings-ffmpeg-path").textContent = String(error);
+    setMediaEngineNotice(String(error), { error: true });
   }
+}
+
+mediaEnginePrimary.addEventListener("click", onMediaEnginePrimary);
+steamWarningPrimary.addEventListener("click", onMediaEnginePrimary);
+mediaEngineChange.addEventListener("click", chooseFfmpeg);
+
+listen("media-engine-progress", (event) => {
+  if (mediaEngineInstalling) renderMediaEngineProgress(event.payload);
 });
+
+renderMediaEngine();
+refreshMediaEngine();
 
 steamChangeDir.addEventListener("click", async () => {
   const picked = hasTauri
@@ -760,7 +1128,9 @@ function updateSelectionState() {
   const boxes = getCheckboxes();
   const selected = boxes.filter((b) => b.checked).length;
   steamCount.textContent = `${selected} of ${currentTrailers.length} selected`;
-  steamDownloadBtn.disabled = selected === 0;
+  const ready = ffmpegReady();
+  steamDownloadBtn.disabled = selected === 0 || !ready;
+  steamDownloadBtn.title = ready ? "" : "Requires ffmpeg — install it in Settings → Downloads and media";
 }
 
 document.getElementById("steam-select-all").addEventListener("click", () => {

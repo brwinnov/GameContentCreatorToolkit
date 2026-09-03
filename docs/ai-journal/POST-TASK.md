@@ -4,6 +4,124 @@ Add completed tasks directly below this introduction, newest first. Keep each
 entry concise enough for another AI assistant to understand what changed and
 what remains without reading a chat transcript.
 
+## 2026-09-03 - Media Engine Install Progress and Release Build
+
+### Request
+
+Improve how the Settings "Media engine" row handles and displays the managed
+ffmpeg dependency after a test that renamed the ffmpeg folder: no progress or
+completion feedback during a 3-5 minute install, a git-describe version string,
+the raw app-data path as a primary line, and an unchanged Install button after
+installation. Prepare the work as version `0.1.5`.
+
+### Decisions
+
+- Switched the managed download to BtbN `ffmpeg-n8.1-latest-win64-lgpl-8.1.zip`
+  (same `latest` tag and `checksums.sha256` manifest; LGPL retained). A
+  release-branch build reports `8.1` from `ffmpeg -version`.
+- `find_ffmpeg`, `set_ffmpeg_path`, and `install_ffmpeg` now return one
+  `MediaEngineStatus` (`status`, `source`, `path`, `version`,
+  `versionDisplay`, `error`, `updateAvailable`) instead of `Option<FfmpegInfo>`.
+- Source is classified by location: paths under `tools/ffmpeg/bin` are
+  `managed` regardless of how they were resolved; `settings.json` `ffmpegPath`
+  now means custom only and is cleared by a managed install.
+- Update detection compares `managedArchiveSha256` (new settings field) with the
+  manifest entry rather than parsing versions; cached in memory for 24 hours.
+- Progress uses a new `media-engine-progress` event so the Steam
+  `download-progress` bar is unaffected. Cancel uses an `AtomicBool` in Tauri
+  managed state; a second install while one runs is rejected.
+- Version `0.1.4.18` was requested; Cargo and Tauri require semver, so `0.1.5`
+  was used with the maintainer's agreement.
+
+### Changed
+
+- `app/src-tauri/src/lib.rs`: `MediaEngineStatus`, `MediaEngineState`,
+  `resolve_ffmpeg`, `classify_source`, `probe_ffmpeg_version`,
+  `display_version`, `update_available`, staged install with swap
+  (`install_ffmpeg_staged`), `cancel_ffmpeg_install`, `check_ffmpeg_update`,
+  `reveal_ffmpeg_folder`; four new unit tests.
+- `app/src/index.html`, `main.js`, `style.css`: `renderMediaEngine()` owns all
+  labels and enabled states; source badge; Show in folder / Copy path;
+  progress bars in the Settings row and Steam banner; Steam download gating;
+  preview mock supports `#ffmpeg=notFound|broken|system|managed|managed-update`.
+- `app/src-tauri/capabilities/default.json`: added
+  `clipboard-manager:allow-write-text` for Copy path.
+- Version `0.1.5` in `package.json`, `tauri.conf.json`, `Cargo.toml`,
+  `Cargo.lock`, and the preview mock; `CHANGELOG.md` section added.
+- Settings Appearance condensed (about 700px to 120px collapsed / 230px
+  expanded): one `Active theme` row with picker and `Startup` toggle
+  right-aligned, a `Customise colours` disclosure (`ggt-theme-editor-open`
+  in localStorage) over a pill-strip colour editor and a one-line name/action
+  row. The "X is the startup theme" line moved to the toggle's tooltip. All
+  element IDs kept, so theme logic in `main.js` is unchanged apart from the
+  disclosure and spelling.
+- Maintainer convention recorded: UI text uses English (Ireland) spelling.
+
+### Fixed During Release Validation
+
+- `display_version` left release-branch tokens unchanged, so the real BtbN
+  build reported `ffmpeg n8.1.2-50-g1a748fe2cd-20260902` instead of a clean
+  number. A lowercase `n` before a digit is now stripped, giving `8.1.2`.
+  This was the git-describe display problem `0.1.5` set out to remove.
+- The staged install's final directory swap failed intermittently with
+  `Access is denied. (os error 5)` while Defender held the freshly extracted
+  114 MB binary. `rename_with_retry` retries both swap renames with a short
+  backoff; rollback already restored the previous copy correctly.
+- Settings Appearance spacing: more room after the `Customise colours`
+  disclosure and above the name/actions row.
+- `CHANGELOG.md` claimed the managed build displays as `8.1`; the `n8.1-latest`
+  release build is `8.1.2`, so the wording now describes a plain release
+  number.
+
+### Validation
+
+- `cargo check` and `cargo clippy` for target `x86_64-pc-windows-gnu` passed
+  with no warnings (Windows-only install code compiled). `cargo fmt` applied.
+- `cargo test --lib` on Linux: 10 tests passed.
+- `node --check app/src/main.js` passed. Headless preview (Playwright) verified
+  every state of the Settings row and Steam banner, the mock install with
+  progress, cancel, completion, and `Up to date`.
+- Windows runtime test against the real backend, driven through the WebView2
+  devtools endpoint (temporarily enabled, then reverted):
+  - Not found showed the amber dot, `ffmpeg required` / `Not found`, `Install`
+    and `Locate…`, the Steam banner, and a disabled download button.
+  - Install ran `Fetching checksums` → determinate `Downloading · N MB / 139 MB`
+    → `Extracting` → `Testing` → green `ffmpeg 8.1.2`, MANAGED badge,
+    `ffmpeg ready ✓`, `Up to date` (disabled) + `Change`. `settings.json`
+    recorded `managedArchiveSha256` and cleared `ffmpegPath`.
+  - Cancel mid-download restored the previous state with an
+    `Installation cancelled` notice and left no `staging-*` folder or ZIP.
+  - A stale `managedArchiveSha256` produced `Install latest`; reinstalling
+    returned `Up to date` with no `bin.previous` remaining.
+  - A custom path showed the CUSTOM badge, plain-text path, and
+    `Switch to managed build`, which installed and cleared `ffmpegPath`.
+  - A missing custom path showed `ffmpeg needs attention`, the
+    "no longer available" message, `Repair`, and the matching Steam banner;
+    Repair restored the managed copy.
+  - `Show in folder` opened Explorer at the managed `bin`; `Copy path` placed
+    the exact path on the clipboard.
+  - A real Steam download (App ID `1091500`) listed 12 trailers newest-first
+    and saved a valid 66.3 MB, 97 s MP4 into `1091500 Cyberpunk_2077`.
+  - Theme switching, colour edit, Update, Save as new, Rename, and Delete all
+    worked; Default's Rename/Delete stayed disabled and the disclosure state
+    survived a reload.
+  - No user-visible `color`, `customize`, or `initialize` remain; the only
+    matches are the HTML `type="color"` input type and code identifiers.
+- Package check: `npx tauri build --bundles msi` produced
+  `GCCtoolkit_0.1.5_x64_en-US.msi` with ProductVersion `0.1.5`, unchanged
+  UpgradeCode `{1DDF37BF-062F-547C-A167-DAB5D7867081}`, and an Upgrade table
+  (`Attributes=257`, `RemoveExistingProducts` at 1501) that performs an
+  in-place major upgrade. Copied to `release/gcc-app-0.1.5/`.
+
+### Remaining
+
+- Installing the `0.1.5` MSI over the installed `0.1.4` still needs a live
+  elevated confirmation of the single Apps & features entry; the MSI upgrade
+  tables were verified statically.
+- `Show in folder` was confirmed on Windows; the Linux `xdg-open` path is still
+  unverified.
+- Build and publish the `0.1.5` MSI through the tag-driven workflow.
+
 ## 2026-08-28 - Temporary Unsigned Release Path
 
 ### Request

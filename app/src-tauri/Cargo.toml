@@ -1,6 +1,6 @@
 [package]
 name = "ggt-app"
-version = "0.1.4"
+version = "0.1.6"
 description = "Game Content Creator Toolkit — desktop app"
 authors = ["Barry Reilly"]
 license = "MIT"

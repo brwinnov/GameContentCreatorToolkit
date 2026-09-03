@@ -52,10 +52,6 @@
           <p class="home-kicker">ACKROSGAMING / CREATOR UTILITIES</p>
           <h1>Game Content<br />Creator Toolkit</h1>
           <p class="home-lede">Collect official trailers and media assets into a clean, creator-ready workspace.</p>
-          <div class="home-meta" aria-label="Application information">
-            <span class="build-identity"><strong id="home-release-type">ALPHA</strong> <span id="home-release-version">0.1.4.local</span></span>
-            <span>Created by <strong id="home-creator">AckrosGaming</strong></span>
-          </div>
         </div>
         <div class="home-mark" aria-hidden="true">
           <span>GC</span>
@@ -96,9 +92,11 @@
         <aside class="home-overview" aria-hidden="true"></aside>
       </div>
 
-      <footer class="home-footer">
-        <span>ALPHA</span>
-        <p>Steam tools are available now. Additional sources are in active planning.</p>
+      <footer class="home-footer" aria-label="Application build information">
+        <div class="home-footer-meta">
+          <span class="build-identity home-build-identity"><strong id="home-release-type">ALPHA</strong> <span id="home-release-version">0.1.6</span></span>
+          <small id="home-creator">AckrosGaming</small>
+        </div>
       </footer>
     </section>
 
@@ -125,9 +123,13 @@
       </div>
 
       <div class="dependency-warning" id="steam-ffmpeg-warning" hidden>
-        <strong>ffmpeg is required before downloading</strong>
-        <p>Install a verified user-local copy, or choose an existing ffmpeg executable in Settings.</p>
-        <button class="btn btn-primary install-ffmpeg" type="button">Install ffmpeg</button>
+        <strong id="steam-ffmpeg-warning-title">ffmpeg is required before downloading</strong>
+        <p id="steam-ffmpeg-warning-text">Install a verified user-local copy, or choose an existing ffmpeg executable in Settings.</p>
+        <div class="media-engine-progress" id="steam-ffmpeg-progress" hidden>
+          <div class="progress-track"><div class="progress-fill" id="steam-ffmpeg-progress-fill"></div></div>
+          <span class="media-engine-progress-label" id="steam-ffmpeg-progress-label">Preparing…</span>
+        </div>
+        <button class="btn btn-primary media-engine-primary" id="steam-ffmpeg-primary" type="button">Install ffmpeg</button>
         <button class="link-btn" type="button" data-open-tab="settings">Open Settings</button>
       </div>
 
@@ -164,9 +166,15 @@
           <span class="output-dir-path" id="steam-output-path">—</span>
           <button class="link-btn" id="steam-change-dir">Change</button>
         </div>
-        <div class="footer-actions">
-          <button class="btn btn-ghost" id="steam-history">Show history</button>
-          <button class="btn btn-primary" id="steam-download" disabled>Download selected</button>
+
+        <div class="footer-actions-wrap">
+          <div class="footer-tip-block">
+            <p class="steam-tip"><span>TIP</span> Start with a Steam store URL, App ID, or game name. Existing files are skipped safely.</p>
+          </div>
+          <div class="footer-actions">
+            <button class="btn btn-ghost" id="steam-history">Show history</button>
+            <button class="btn btn-primary" id="steam-download" disabled>Download selected</button>
+          </div>
         </div>
       </footer>
 
@@ -235,9 +243,15 @@
 
     <!-- ── Settings tab ──────────────────────────────────────────── -->
     <section class="pane" id="pane-settings">
-      <header class="pane-header">
-        <h1>Settings</h1>
-        <p class="pane-sub">Applies to all downloader tabs</p>
+      <header class="pane-header settings-header">
+        <div>
+          <h1>Settings</h1>
+          <p class="pane-sub">Applies to all downloader tabs</p>
+        </div>
+        <div class="settings-header-meta" aria-label="Application build information">
+          <span id="settings-release">ALPHA 0.1.4.local</span>
+          <small id="settings-creator">AckrosGaming</small>
+        </div>
       </header>
 
       <div class="settings-content">
@@ -247,50 +261,47 @@
             <h2 id="settings-appearance-title">Theme</h2>
           </div>
 
-          <div class="settings-row">
-            <label for="theme-picker">
-              <span class="settings-label">Preview theme</span>
-              <span class="settings-value">Switches the interface immediately</span>
-            </label>
-            <select id="theme-picker" class="settings-select">
-            </select>
+          <div class="settings-row theme-row">
+            <div>
+              <label class="settings-label" for="theme-picker">Active theme</label>
+              <button class="link-btn theme-customise-toggle" id="theme-customise" type="button" aria-expanded="false" aria-controls="theme-editor">
+                <span class="theme-customise-caret" aria-hidden="true">&#9656;</span> Customise colours
+              </button>
+            </div>
+            <div class="theme-row-controls">
+              <select id="theme-picker" class="settings-select"></select>
+              <label class="toggle-control toggle-inline" for="theme-default-toggle" title="Use the selected theme when the app starts">
+                <span class="toggle-inline-label">Startup</span>
+                <input type="checkbox" id="theme-default-toggle" />
+                <span class="toggle-track" aria-hidden="true"><span></span></span>
+              </label>
+            </div>
           </div>
 
-          <div class="settings-row">
-            <label for="theme-default-toggle">
-              <span class="settings-label">Use selected theme on startup</span>
-              <span class="settings-value" id="theme-default-status">Default is the startup theme</span>
-            </label>
-            <label class="toggle-control">
-              <input type="checkbox" id="theme-default-toggle" />
-              <span class="toggle-track" aria-hidden="true"><span></span></span>
-            </label>
-          </div>
-
-          <div class="theme-editor" id="theme-editor" aria-labelledby="theme-editor-title">
+          <div class="theme-editor" id="theme-editor" aria-labelledby="theme-editor-title" hidden>
             <div class="theme-editor-heading">
-              <div>
-                <div class="settings-label" id="theme-editor-title">Edit selected theme</div>
-                <div class="settings-value" id="theme-editor-status">Changes preview immediately</div>
+              <div class="theme-editor-title-group">
+                <span class="settings-label" id="theme-editor-title">Colours</span>
+                <span class="theme-editor-status" id="theme-editor-status">Changes preview immediately</span>
               </div>
-              <button class="link-btn" id="theme-reset" type="button">Reset colors</button>
+              <button class="link-btn" id="theme-reset" type="button">Reset colours</button>
             </div>
             <div class="theme-color-grid">
-              <label class="theme-color-field">Main background<input type="color" data-theme-color="bg-app" /></label>
-              <label class="theme-color-field">Panel<input type="color" data-theme-color="bg-panel" /></label>
-              <label class="theme-color-field">Raised panel<input type="color" data-theme-color="bg-panel-2" /></label>
-              <label class="theme-color-field">Primary text<input type="color" data-theme-color="text-primary" /></label>
-              <label class="theme-color-field">Secondary text<input type="color" data-theme-color="text-secondary" /></label>
-              <label class="theme-color-field">Accent<input type="color" data-theme-color="cyan" /></label>
-              <label class="theme-color-field">Highlight text<input type="color" data-theme-color="amber" /></label>
+              <label class="theme-color-field"><input type="color" data-theme-color="bg-app" />Background</label>
+              <label class="theme-color-field"><input type="color" data-theme-color="bg-panel" />Panel</label>
+              <label class="theme-color-field"><input type="color" data-theme-color="bg-panel-2" />Raised panel</label>
+              <label class="theme-color-field"><input type="color" data-theme-color="text-primary" />Text</label>
+              <label class="theme-color-field"><input type="color" data-theme-color="text-secondary" />Secondary text</label>
+              <label class="theme-color-field"><input type="color" data-theme-color="cyan" />Accent</label>
+              <label class="theme-color-field"><input type="color" data-theme-color="amber" />Highlight</label>
             </div>
             <div class="theme-save-row">
               <label class="theme-name-field" for="theme-name">
-                <span>Theme name</span>
+                <span>Name</span>
                 <input type="text" id="theme-name" maxlength="40" />
               </label>
               <div class="theme-save-actions">
-                <button class="btn btn-primary" id="theme-update" type="button">Update active</button>
+                <button class="btn btn-primary" id="theme-update" type="button">Update</button>
                 <button class="btn btn-ghost" id="theme-save-as" type="button">Save as new</button>
                 <button class="btn btn-ghost" id="theme-rename" type="button">Rename</button>
                 <button class="btn btn-danger" id="theme-delete" type="button">Delete</button>
@@ -313,15 +324,23 @@
             <button class="link-btn" id="settings-change-dir">Change</button>
           </div>
 
-          <div class="settings-row">
-            <div>
+          <div class="settings-row media-engine" id="media-engine-row" data-status="checking">
+            <div class="media-engine-info">
               <div class="settings-label">Media engine</div>
-              <div class="settings-value settings-tool-version" id="settings-ffmpeg-version"><span class="status-dot is-checking"></span>Checking ffmpeg</div>
-              <div class="settings-value" id="settings-ffmpeg-path">Detecting…</div>
+              <div class="settings-value settings-tool-version" id="settings-ffmpeg-version">
+                <span class="status-dot is-checking"></span><span id="settings-ffmpeg-version-text">Checking ffmpeg</span>
+                <span class="source-badge" id="settings-ffmpeg-source" hidden></span>
+              </div>
+              <div class="settings-value media-engine-detail" id="settings-ffmpeg-detail">Detecting…</div>
+              <div class="media-engine-progress" id="settings-ffmpeg-progress" hidden>
+                <div class="progress-track"><div class="progress-fill" id="settings-ffmpeg-progress-fill"></div></div>
+                <span class="media-engine-progress-label" id="settings-ffmpeg-progress-label">Preparing…</span>
+              </div>
+              <div class="media-engine-notice" id="settings-ffmpeg-notice" hidden></div>
             </div>
             <div class="settings-actions">
-              <button class="link-btn install-ffmpeg" type="button">Install</button>
-              <button class="link-btn" id="settings-change-ffmpeg" type="button">Change</button>
+              <button class="link-btn media-engine-primary" id="settings-ffmpeg-primary" type="button">Install</button>
+              <button class="link-btn media-engine-change" id="settings-change-ffmpeg" type="button">Change</button>
             </div>
           </div>
 
@@ -332,14 +351,8 @@
             </div>
             <button class="link-btn" type="button" data-open-tab="steam">Open Steam</button>
           </div>
-
-          <p class="settings-tip"><span>TIP</span> Start with a Steam store URL, App ID, or game name. Existing files are skipped safely.</p>
         </section>
 
-        <footer class="settings-footer" aria-label="Application build information">
-          <span id="settings-release">ALPHA 0.1.4.local</span>
-          <small id="settings-creator">AckrosGaming</small>
-        </footer>
       </div>
     </section>
 

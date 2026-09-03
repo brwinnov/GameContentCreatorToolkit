@@ -3,18 +3,30 @@ use sha2::{Digest, Sha256};
 use std::fs::File;
 use std::path::{Path, PathBuf};
 use std::process::Stdio;
-use tauri::{AppHandle, Emitter, Manager};
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Mutex;
+use std::time::{Duration, Instant};
+use tauri::{AppHandle, Emitter, Manager, State};
 use tokio::io::{AsyncBufReadExt, BufReader};
 
 const HISTORY_FILE: &str = "steam-history.json";
 const SETTINGS_FILE: &str = "settings.json";
 const MAX_FFMPEG_ARCHIVE_BYTES: u64 = 250 * 1024 * 1024;
 const MAX_FFMPEG_TOOL_BYTES: u64 = 200 * 1024 * 1024;
+const UPDATE_CHECK_TTL: Duration = Duration::from_secs(24 * 60 * 60);
+#[cfg_attr(not(target_os = "windows"), allow(dead_code))]
+const UPDATE_CHECK_TIMEOUT: Duration = Duration::from_secs(5);
 
+// BtbN publishes every build under the rolling `latest` release tag together
+// with one `checksums.sha256` manifest. The `n8.1-latest` asset tracks the 8.1
+// release branch, so `ffmpeg -version` reports a plain `8.1` instead of the
+// git-describe string (`N-126390-g…`) the `master-latest` nightly produces.
+// LGPL is deliberate: this project is MIT-licensed and redistributes nothing,
+// but the LGPL build avoids pulling GPL-only components onto users' machines.
 #[cfg(target_os = "windows")]
-const FFMPEG_ARCHIVE_NAME: &str = "ffmpeg-master-latest-win64-lgpl.zip";
+const FFMPEG_ARCHIVE_NAME: &str = "ffmpeg-n8.1-latest-win64-lgpl-8.1.zip";
 #[cfg(target_os = "windows")]
-const FFMPEG_ARCHIVE_URL: &str = "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-lgpl.zip";
+const FFMPEG_ARCHIVE_URL: &str = "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-n8.1-latest-win64-lgpl-8.1.zip";
 #[cfg(target_os = "windows")]
 const FFMPEG_CHECKSUMS_URL: &str =
     "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/checksums.sha256";
@@ -77,17 +89,116 @@ pub struct AppMetadata {
     pub creator: &'static str,
 }
 
-#[derive(Debug, Clone, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct FfmpegInfo {
-    path: String,
-    version: String,
+/// Where the active ffmpeg executable comes from.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum FfmpegSource {
+    /// Installed by the app under `<app data>/tools/ffmpeg/bin`.
+    Managed,
+    /// Found on PATH or in one of the well-known install locations.
+    System,
+    /// Chosen by the user in Settings and persisted in `settings.json`.
+    Custom,
 }
 
-#[derive(Debug, Default, Serialize, Deserialize)]
+impl FfmpegSource {
+    fn as_str(self) -> &'static str {
+        match self {
+            FfmpegSource::Managed => "managed",
+            FfmpegSource::System => "system",
+            FfmpegSource::Custom => "custom",
+        }
+    }
+}
+
+/// Full media-engine picture for the Settings row and the Steam banner.
+///
+/// `status` is `notFound`, `ready`, or `broken`. `broken` means an executable
+/// was resolved but cannot run (or a persisted custom path no longer exists);
+/// it is deliberately distinct from `notFound` so the UI can offer Repair.
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct MediaEngineStatus {
+    status: &'static str,
+    source: Option<&'static str>,
+    path: Option<String>,
+    version: Option<String>,
+    version_display: Option<String>,
+    error: Option<String>,
+    update_available: Option<bool>,
+}
+
+impl MediaEngineStatus {
+    fn not_found() -> Self {
+        MediaEngineStatus {
+            status: "notFound",
+            source: None,
+            path: None,
+            version: None,
+            version_display: None,
+            error: None,
+            update_available: None,
+        }
+    }
+}
+
+#[cfg_attr(not(target_os = "windows"), allow(dead_code))]
+/// Progress of a managed ffmpeg install, emitted as `media-engine-progress`.
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct MediaEngineProgress {
+    phase: &'static str,
+    bytes_done: u64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    bytes_total: Option<u64>,
+}
+
+/// Cross-command state for the managed ffmpeg installer.
+#[derive(Default)]
+struct MediaEngineState {
+    installing: AtomicBool,
+    cancel_requested: AtomicBool,
+    /// Cached result of the last update check: (when, newer build available?).
+    update_check: Mutex<Option<(Instant, Option<bool>)>>,
+}
+
+impl MediaEngineState {
+    fn cached_update(&self) -> Option<bool> {
+        self.update_check
+            .lock()
+            .ok()
+            .and_then(|guard| *guard)
+            .filter(|(checked_at, _)| checked_at.elapsed() < UPDATE_CHECK_TTL)
+            .and_then(|(_, available)| available)
+    }
+
+    #[cfg_attr(not(target_os = "windows"), allow(dead_code))]
+    fn remember_update(&self, available: Option<bool>) {
+        if let Ok(mut guard) = self.update_check.lock() {
+            *guard = Some((Instant::now(), available));
+        }
+    }
+}
+
+#[cfg_attr(not(target_os = "windows"), allow(dead_code))]
+/// Clears the `installing` flag when an install finishes by any path.
+struct InstallGuard<'a>(&'a MediaEngineState);
+
+impl Drop for InstallGuard<'_> {
+    fn drop(&mut self) {
+        self.0.installing.store(false, Ordering::SeqCst);
+        self.0.cancel_requested.store(false, Ordering::SeqCst);
+    }
+}
+
+#[derive(Debug, Default, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct AppSettings {
+    /// User-selected ffmpeg. `None` means "use the managed copy, else search".
     ffmpeg_path: Option<String>,
+    /// SHA-256 of the archive the managed copy was extracted from, compared
+    /// against the upstream manifest to decide whether a newer build exists.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    managed_archive_sha256: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -141,7 +252,7 @@ fn write_json_atomic<T: Serialize>(path: &Path, value: &T) -> Result<(), String>
         .map_err(|error| format!("Could not create the app data folder: {error}"))?;
     let temporary = path.with_extension("tmp");
     let data = serde_json::to_vec_pretty(value)
-        .map_err(|error| format!("Could not serialize app data: {error}"))?;
+        .map_err(|error| format!("Could not serialise app data: {error}"))?;
     std::fs::write(&temporary, data)
         .map_err(|error| format!("Could not write app data: {error}"))?;
     if path.exists() {
@@ -219,6 +330,10 @@ fn load_settings(app: &AppHandle) -> AppSettings {
         .and_then(|path| std::fs::read(path).ok())
         .and_then(|data| serde_json::from_slice(&data).ok())
         .unwrap_or_default()
+}
+
+fn save_settings(app: &AppHandle, settings: &AppSettings) -> Result<(), String> {
+    write_json_atomic(&app_data_file(app, SETTINGS_FILE)?, settings)
 }
 
 #[tauri::command]
@@ -430,56 +545,118 @@ fn valid_ffmpeg_path(path: &Path) -> bool {
             .unwrap_or(false)
 }
 
-fn managed_ffmpeg_path(app: &AppHandle) -> Option<PathBuf> {
+fn ffmpeg_exe_name() -> &'static str {
+    if cfg!(windows) {
+        "ffmpeg.exe"
+    } else {
+        "ffmpeg"
+    }
+}
+
+fn ffprobe_exe_name() -> &'static str {
+    if cfg!(windows) {
+        "ffprobe.exe"
+    } else {
+        "ffprobe"
+    }
+}
+
+/// `<app data>/tools/ffmpeg` — the managed install root.
+fn managed_tools_dir(app: &AppHandle) -> Option<PathBuf> {
     app.path()
         .app_local_data_dir()
         .ok()
-        .map(|directory| {
-            directory
-                .join("tools")
-                .join("ffmpeg")
-                .join("bin")
-                .join(if cfg!(windows) {
-                    "ffmpeg.exe"
-                } else {
-                    "ffmpeg"
-                })
-        })
+        .map(|directory| directory.join("tools").join("ffmpeg"))
+}
+
+fn managed_ffmpeg_path(app: &AppHandle) -> Option<PathBuf> {
+    managed_tools_dir(app)
+        .map(|tools| tools.join("bin").join(ffmpeg_exe_name()))
         .filter(|path| valid_ffmpeg_path(path))
 }
 
-fn find_ffmpeg_path(app: &AppHandle) -> Option<String> {
-    if let Some(path) = load_settings(app)
-        .ffmpeg_path
-        .map(PathBuf::from)
-        .filter(|path| valid_ffmpeg_path(path))
-    {
-        return Some(path.display().to_string());
+/// Classifies a resolved executable by location: anything under the managed
+/// `bin` folder is `Managed`, regardless of how it was resolved.
+fn classify_source(path: &Path, managed_bin: Option<&Path>, from_settings: bool) -> FfmpegSource {
+    if managed_bin.is_some_and(|bin| path.starts_with(bin)) {
+        FfmpegSource::Managed
+    } else if from_settings {
+        FfmpegSource::Custom
+    } else {
+        FfmpegSource::System
     }
+}
 
-    if let Some(path) = managed_ffmpeg_path(app) {
-        return Some(path.display().to_string());
-    }
-
-    // 1. Is it on PATH?
-    let on_path = std::process::Command::new(if cfg!(windows) { "where" } else { "which" })
+fn ffmpeg_on_path() -> Option<PathBuf> {
+    let mut command = std::process::Command::new(if cfg!(windows) { "where" } else { "which" });
+    configure_hidden_std_process(&mut command);
+    command
         .arg("ffmpeg")
         .output()
         .ok()
         .filter(|o| o.status.success())
         .and_then(|o| String::from_utf8(o.stdout).ok())
         .map(|s| s.lines().next().unwrap_or("").trim().to_string())
-        .filter(|s| !s.is_empty());
+        .filter(|s| !s.is_empty())
+        .map(PathBuf::from)
+}
 
-    if let Some(p) = on_path {
-        return Some(p);
+/// Outcome of locating an ffmpeg executable, before it has been run.
+enum Resolved {
+    Found {
+        path: PathBuf,
+        source: FfmpegSource,
+    },
+    /// A persisted custom path that no longer points at a file.
+    Missing {
+        path: String,
+    },
+    NotFound,
+}
+
+fn resolve_ffmpeg(app: &AppHandle) -> Resolved {
+    let managed_bin = managed_tools_dir(app).map(|tools| tools.join("bin"));
+
+    if let Some(configured) = load_settings(app).ffmpeg_path {
+        let candidate = PathBuf::from(&configured);
+        if valid_ffmpeg_path(&candidate) {
+            return Resolved::Found {
+                source: classify_source(&candidate, managed_bin.as_deref(), true),
+                path: candidate,
+            };
+        }
+        return Resolved::Missing { path: configured };
     }
 
-    // 2. Common install locations not always on PATH.
-    ffmpeg_candidates()
-        .into_iter()
-        .find(|p| p.exists())
-        .map(|p| p.display().to_string())
+    if let Some(path) = managed_ffmpeg_path(app) {
+        return Resolved::Found {
+            path,
+            source: FfmpegSource::Managed,
+        };
+    }
+
+    if let Some(path) = ffmpeg_on_path() {
+        return Resolved::Found {
+            source: classify_source(&path, managed_bin.as_deref(), false),
+            path,
+        };
+    }
+
+    match ffmpeg_candidates().into_iter().find(|p| p.is_file()) {
+        Some(path) => Resolved::Found {
+            source: classify_source(&path, managed_bin.as_deref(), false),
+            path,
+        },
+        None => Resolved::NotFound,
+    }
+}
+
+/// Path of a runnable ffmpeg for the download pipeline, if one is configured.
+fn find_ffmpeg_path(app: &AppHandle) -> Option<String> {
+    match resolve_ffmpeg(app) {
+        Resolved::Found { path, .. } => Some(path.display().to_string()),
+        _ => None,
+    }
 }
 
 fn parse_ffmpeg_version(output: &str) -> Option<String> {
@@ -492,54 +669,187 @@ fn parse_ffmpeg_version(output: &str) -> Option<String> {
     })
 }
 
-fn ffmpeg_info(path: String) -> FfmpegInfo {
-    let mut command = std::process::Command::new(&path);
+/// Runs `ffmpeg -version` and returns the version token, or why it failed.
+fn probe_ffmpeg_version(path: &Path) -> Result<String, String> {
+    let mut command = std::process::Command::new(path);
     configure_hidden_std_process(&mut command);
-    let version = command
+    let output = command
         .arg("-version")
         .output()
-        .ok()
-        .filter(|output| output.status.success())
-        .and_then(|output| {
-            parse_ffmpeg_version(&String::from_utf8_lossy(&output.stdout))
-                .or_else(|| parse_ffmpeg_version(&String::from_utf8_lossy(&output.stderr)))
-        })
-        .unwrap_or_else(|| "unknown".to_string());
-    FfmpegInfo { path, version }
+        .map_err(|error| format!("ffmpeg could not be started: {error}"))?;
+    if !output.status.success() {
+        return Err(format!("ffmpeg exited with status {}.", output.status));
+    }
+    parse_ffmpeg_version(&String::from_utf8_lossy(&output.stdout))
+        .or_else(|| parse_ffmpeg_version(&String::from_utf8_lossy(&output.stderr)))
+        .ok_or_else(|| "ffmpeg ran but did not report a version.".to_string())
+}
+
+const MONTH_ABBREVIATIONS: [&str; 12] = [
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+];
+
+/// Turns the raw `ffmpeg -version` token into something readable.
+///
+/// * `8.1`, `8.1.1-full_build`, `7.1-essentials_build` → `8.1`, `8.1.1`, `7.1`
+/// * `n8.1.2-50-g1a748fe2cd-20260902` (release branch) → `8.1.2`
+/// * `N-126390-g9fc8c785e2-20260902` (git nightly) → `nightly build · 2 Sep 2026`
+/// * anything else is returned unchanged.
+fn display_version(raw: &str) -> String {
+    let trimmed = raw.trim();
+
+    let mut nightly = trimmed.strip_prefix("N-").map(|rest| rest.split('-'));
+    if let Some(parts) = nightly.as_mut() {
+        let commit_count = parts.next().unwrap_or_default();
+        let hash = parts.next().unwrap_or_default();
+        let looks_like_git = !commit_count.is_empty()
+            && commit_count.chars().all(|c| c.is_ascii_digit())
+            && hash.len() > 1
+            && hash.starts_with('g')
+            && hash[1..].chars().all(|c| c.is_ascii_hexdigit());
+        if looks_like_git {
+            let date = parts
+                .next()
+                .filter(|date| date.len() == 8 && date.chars().all(|c| c.is_ascii_digit()));
+            return match date.and_then(format_yyyymmdd) {
+                Some(date) => format!("nightly build · {date}"),
+                None => "nightly build".to_string(),
+            };
+        }
+    }
+
+    // Release-branch builds report a git-describe token such as `n8.1.2-50-g<hash>`.
+    let versioned = trimmed
+        .strip_prefix('n')
+        .filter(|rest| rest.starts_with(|c: char| c.is_ascii_digit()))
+        .unwrap_or(trimmed);
+
+    let numeric: String = versioned
+        .chars()
+        .take_while(|c| c.is_ascii_digit() || *c == '.')
+        .collect();
+    let numeric = numeric.trim_matches('.');
+    if !numeric.is_empty() && numeric.chars().any(|c| c.is_ascii_digit()) {
+        return numeric.to_string();
+    }
+
+    trimmed.to_string()
+}
+
+fn format_yyyymmdd(date: &str) -> Option<String> {
+    let year = &date[..4];
+    let month: usize = date[4..6].parse().ok()?;
+    let day: u32 = date[6..8].parse().ok()?;
+    let month_name = MONTH_ABBREVIATIONS.get(month.checked_sub(1)?)?;
+    (1..=31)
+        .contains(&day)
+        .then(|| format!("{day} {month_name} {year}"))
+}
+
+fn media_engine_status(app: &AppHandle, state: &MediaEngineState) -> MediaEngineStatus {
+    let mut status = MediaEngineStatus::not_found();
+    match resolve_ffmpeg(app) {
+        Resolved::NotFound => {}
+        Resolved::Missing { path } => {
+            status.status = "broken";
+            status.source = Some(FfmpegSource::Custom.as_str());
+            status.path = Some(path.clone());
+            status.error = Some(format!("The ffmpeg at {path} is no longer available."));
+        }
+        Resolved::Found { path, source } => {
+            status.source = Some(source.as_str());
+            status.path = Some(path.display().to_string());
+            match probe_ffmpeg_version(&path) {
+                Ok(version) => {
+                    status.status = "ready";
+                    status.version_display = Some(display_version(&version));
+                    status.version = Some(version);
+                    if source == FfmpegSource::Managed {
+                        status.update_available = state.cached_update();
+                    }
+                }
+                Err(error) => {
+                    status.status = "broken";
+                    status.error = Some(error);
+                }
+            }
+        }
+    }
+    status
 }
 
 #[tauri::command]
-fn find_ffmpeg(app: AppHandle) -> Option<FfmpegInfo> {
-    find_ffmpeg_path(&app).map(ffmpeg_info)
+fn find_ffmpeg(app: AppHandle, state: State<'_, MediaEngineState>) -> MediaEngineStatus {
+    media_engine_status(&app, &state)
 }
 
 #[tauri::command]
-fn set_ffmpeg_path(app: AppHandle, path: Option<String>) -> Result<Option<FfmpegInfo>, String> {
+fn set_ffmpeg_path(
+    app: AppHandle,
+    state: State<'_, MediaEngineState>,
+    path: Option<String>,
+) -> Result<MediaEngineStatus, String> {
+    if state.installing.load(Ordering::SeqCst) {
+        return Err("Wait for the current ffmpeg installation to finish.".to_string());
+    }
     let normalized = match path {
         Some(value) => {
             let candidate = PathBuf::from(value);
             if !valid_ffmpeg_path(&candidate) {
                 return Err("Choose the ffmpeg executable, not its folder.".to_string());
             }
-            let ffprobe = candidate.with_file_name(if cfg!(windows) {
-                "ffprobe.exe"
-            } else {
-                "ffprobe"
-            });
-            if !ffprobe.is_file() {
+            if !candidate.with_file_name(ffprobe_exe_name()).is_file() {
                 return Err("ffprobe must be in the same folder as ffmpeg.".to_string());
             }
             Some(candidate.display().to_string())
         }
         None => None,
     };
-    write_json_atomic(
-        &app_data_file(&app, SETTINGS_FILE)?,
-        &AppSettings {
-            ffmpeg_path: normalized.clone(),
-        },
-    )?;
-    Ok(normalized.map(ffmpeg_info))
+    let mut settings = load_settings(&app);
+    settings.ffmpeg_path = normalized;
+    save_settings(&app, &settings)?;
+    Ok(media_engine_status(&app, &state))
+}
+
+/// Opens the folder containing the active ffmpeg in the system file manager.
+/// Only the resolved path is ever revealed, never a caller-supplied one.
+#[tauri::command]
+fn reveal_ffmpeg_folder(app: AppHandle) -> Result<(), String> {
+    let path = match resolve_ffmpeg(&app) {
+        Resolved::Found { path, .. } => path,
+        _ => return Err("No ffmpeg folder to show.".to_string()),
+    };
+    let folder = path
+        .parent()
+        .ok_or_else(|| "ffmpeg has no parent folder.".to_string())?;
+
+    #[cfg(target_os = "windows")]
+    let mut command = {
+        let mut command = std::process::Command::new("explorer");
+        command.arg(format!("/select,{}", path.display()));
+        command
+    };
+    #[cfg(target_os = "macos")]
+    let mut command = {
+        let mut command = std::process::Command::new("open");
+        command.arg("-R").arg(&path);
+        command
+    };
+    #[cfg(all(unix, not(target_os = "macos")))]
+    let mut command = {
+        let mut command = std::process::Command::new("xdg-open");
+        command.arg(folder);
+        command
+    };
+
+    let _ = folder;
+    command
+        .stdin(Stdio::null())
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .spawn()
+        .map(|_| ())
+        .map_err(|error| format!("Could not open the ffmpeg folder: {error}"))
 }
 
 fn expected_checksum(manifest: &str, archive_name: &str) -> Option<String> {
@@ -554,6 +864,101 @@ fn expected_checksum(manifest: &str, archive_name: &str) -> Option<String> {
                 .all(|character| character.is_ascii_hexdigit()))
         .then(|| checksum.to_ascii_lowercase())
     })
+}
+
+/// `Some(true)` when the upstream manifest lists a different archive hash than
+/// the one the managed copy was built from; `None` when either side is unknown.
+fn update_available(installed_sha256: Option<&str>, latest_sha256: Option<&str>) -> Option<bool> {
+    let installed = installed_sha256?.trim().to_ascii_lowercase();
+    let latest = latest_sha256?.trim().to_ascii_lowercase();
+    if installed.is_empty() || latest.is_empty() {
+        return None;
+    }
+    Some(installed != latest)
+}
+
+#[tauri::command]
+async fn check_ffmpeg_update(
+    app: AppHandle,
+    state: State<'_, MediaEngineState>,
+) -> Result<Option<bool>, String> {
+    #[cfg(not(target_os = "windows"))]
+    {
+        let _ = (&app, &state);
+        Ok(None)
+    }
+
+    #[cfg(target_os = "windows")]
+    {
+        let is_managed = matches!(
+            resolve_ffmpeg(&app),
+            Resolved::Found {
+                source: FfmpegSource::Managed,
+                ..
+            }
+        );
+        let installed = load_settings(&app).managed_archive_sha256;
+        if !is_managed || installed.is_none() {
+            return Ok(None);
+        }
+        if let Ok(guard) = state.update_check.lock() {
+            if let Some((checked_at, cached)) = *guard {
+                if checked_at.elapsed() < UPDATE_CHECK_TTL {
+                    return Ok(cached);
+                }
+            }
+        }
+
+        let latest = async {
+            let client = reqwest::Client::builder()
+                .user_agent("GCCtoolkit ffmpeg installer")
+                .timeout(UPDATE_CHECK_TIMEOUT)
+                .build()
+                .ok()?;
+            let manifest = client
+                .get(FFMPEG_CHECKSUMS_URL)
+                .send()
+                .await
+                .ok()?
+                .error_for_status()
+                .ok()?
+                .text()
+                .await
+                .ok()?;
+            expected_checksum(&manifest, FFMPEG_ARCHIVE_NAME)
+        }
+        .await;
+
+        let result = update_available(installed.as_deref(), latest.as_deref());
+        state.remember_update(result);
+        Ok(result)
+    }
+}
+
+#[tauri::command]
+fn cancel_ffmpeg_install(state: State<'_, MediaEngineState>) -> Result<(), String> {
+    if !state.installing.load(Ordering::SeqCst) {
+        return Err("No ffmpeg installation is running.".to_string());
+    }
+    state.cancel_requested.store(true, Ordering::SeqCst);
+    Ok(())
+}
+
+#[cfg(target_os = "windows")]
+fn emit_media_engine_progress(
+    app: &AppHandle,
+    phase: &'static str,
+    bytes_done: u64,
+    bytes_total: Option<u64>,
+) {
+    let _ = app.emit(
+        "media-engine-progress",
+        MediaEngineProgress {
+            phase,
+            bytes_done,
+            bytes_total,
+        },
+    );
 }
 
 #[cfg(target_os = "windows")]
@@ -592,96 +997,209 @@ fn extract_ffmpeg_tools(archive_path: &Path, destination: &Path) -> Result<(), S
     Ok(())
 }
 
+/// Downloads, verifies, extracts and tests the managed build inside
+/// `staging_dir`, then swaps it into `bin_dir`. Returns the archive SHA-256.
+#[cfg(target_os = "windows")]
+async fn install_ffmpeg_staged(
+    app: &AppHandle,
+    state: &MediaEngineState,
+    staging_dir: &Path,
+    bin_dir: &Path,
+) -> Result<String, String> {
+    let cancelled = || state.cancel_requested.load(Ordering::SeqCst);
+    let archive_path = staging_dir.join(FFMPEG_ARCHIVE_NAME);
+    let staged_bin = staging_dir.join("bin");
+
+    tokio::fs::create_dir_all(staging_dir)
+        .await
+        .map_err(|error| format!("Could not create the ffmpeg folder: {error}"))?;
+
+    emit_media_engine_progress(app, "checksums", 0, None);
+    let client = reqwest::Client::builder()
+        .user_agent("GCCtoolkit ffmpeg installer")
+        .build()
+        .map_err(|error| format!("Could not initialise the downloader: {error}"))?;
+    let manifest = client
+        .get(FFMPEG_CHECKSUMS_URL)
+        .send()
+        .await
+        .and_then(reqwest::Response::error_for_status)
+        .map_err(|error| format!("Could not download ffmpeg checksums: {error}"))?
+        .text()
+        .await
+        .map_err(|error| format!("Could not read ffmpeg checksums: {error}"))?;
+    let expected = expected_checksum(&manifest, FFMPEG_ARCHIVE_NAME)
+        .ok_or_else(|| "The checksum manifest does not list the Windows ffmpeg ZIP.".to_string())?;
+    if cancelled() {
+        return Err("Installation cancelled.".to_string());
+    }
+
+    let mut response = client
+        .get(FFMPEG_ARCHIVE_URL)
+        .send()
+        .await
+        .and_then(reqwest::Response::error_for_status)
+        .map_err(|error| format!("Could not download ffmpeg: {error}"))?;
+    let total = response.content_length();
+    if total.is_some_and(|length| length > MAX_FFMPEG_ARCHIVE_BYTES) {
+        return Err("The ffmpeg archive exceeds the safe download size limit.".to_string());
+    }
+    emit_media_engine_progress(app, "downloading", 0, total);
+
+    let mut archive_file = tokio::fs::File::create(&archive_path)
+        .await
+        .map_err(|error| format!("Could not create the ffmpeg archive: {error}"))?;
+    let mut hasher = Sha256::new();
+    let mut downloaded_bytes = 0u64;
+    let mut last_emit = Instant::now();
+    let mut last_emitted_bytes = 0u64;
+    while let Some(chunk) = response
+        .chunk()
+        .await
+        .map_err(|error| format!("ffmpeg download failed: {error}"))?
+    {
+        if cancelled() {
+            return Err("Installation cancelled.".to_string());
+        }
+        downloaded_bytes += chunk.len() as u64;
+        if downloaded_bytes > MAX_FFMPEG_ARCHIVE_BYTES {
+            return Err("The ffmpeg archive exceeds the safe download size limit.".to_string());
+        }
+        hasher.update(&chunk);
+        tokio::io::AsyncWriteExt::write_all(&mut archive_file, &chunk)
+            .await
+            .map_err(|error| format!("Could not save ffmpeg: {error}"))?;
+        if last_emit.elapsed() >= Duration::from_millis(250)
+            || downloaded_bytes - last_emitted_bytes >= 512 * 1024
+        {
+            emit_media_engine_progress(app, "downloading", downloaded_bytes, total);
+            last_emit = Instant::now();
+            last_emitted_bytes = downloaded_bytes;
+        }
+    }
+    tokio::io::AsyncWriteExt::flush(&mut archive_file)
+        .await
+        .map_err(|error| format!("Could not finish saving ffmpeg: {error}"))?;
+    drop(archive_file);
+    emit_media_engine_progress(app, "downloading", downloaded_bytes, total);
+
+    emit_media_engine_progress(app, "verifying", downloaded_bytes, total);
+    let actual = format!("{:x}", hasher.finalize());
+    if actual != expected {
+        return Err("The ffmpeg download failed SHA-256 verification.".to_string());
+    }
+
+    emit_media_engine_progress(app, "extracting", downloaded_bytes, total);
+    let archive_for_task = archive_path.clone();
+    let staged_bin_for_task = staged_bin.clone();
+    tokio::task::spawn_blocking(move || {
+        extract_ffmpeg_tools(&archive_for_task, &staged_bin_for_task)
+    })
+    .await
+    .map_err(|error| format!("ffmpeg extraction task failed: {error}"))??;
+    let _ = tokio::fs::remove_file(&archive_path).await;
+    if cancelled() {
+        return Err("Installation cancelled.".to_string());
+    }
+
+    emit_media_engine_progress(app, "testing", downloaded_bytes, total);
+    let staged_exe = staged_bin.join("ffmpeg.exe");
+    tokio::task::spawn_blocking(move || probe_ffmpeg_version(&staged_exe))
+        .await
+        .map_err(|error| format!("ffmpeg test task failed: {error}"))?
+        .map_err(|error| format!("The downloaded ffmpeg does not run: {error}"))?;
+
+    // Swap: the previous bin/ is only renamed aside once the new one is proven.
+    let retired = bin_dir.with_file_name("bin.previous");
+    if retired.exists() {
+        let _ = tokio::fs::remove_dir_all(&retired).await;
+    }
+    let had_previous = bin_dir.exists();
+    if had_previous {
+        rename_with_retry(bin_dir, &retired)
+            .await
+            .map_err(|error| {
+                format!("Could not replace the existing ffmpeg (is it still running?): {error}")
+            })?;
+    }
+    if let Err(error) = rename_with_retry(&staged_bin, bin_dir).await {
+        if had_previous {
+            let _ = tokio::fs::rename(&retired, bin_dir).await;
+        }
+        return Err(format!("Could not move ffmpeg into place: {error}"));
+    }
+    let _ = tokio::fs::remove_dir_all(&retired).await;
+
+    Ok(actual)
+}
+
+/// Renames a directory, retrying briefly because Windows virus scanners hold a
+/// transient lock on freshly extracted executables.
+async fn rename_with_retry(from: &Path, to: &Path) -> std::io::Result<()> {
+    let mut last_error = match tokio::fs::rename(from, to).await {
+        Ok(()) => return Ok(()),
+        Err(error) => error,
+    };
+    for attempt in 1..=5u32 {
+        tokio::time::sleep(Duration::from_millis(200 * u64::from(attempt))).await;
+        match tokio::fs::rename(from, to).await {
+            Ok(()) => return Ok(()),
+            Err(error) => last_error = error,
+        }
+    }
+    Err(last_error)
+}
+
 #[tauri::command]
-async fn install_ffmpeg(app: AppHandle) -> Result<FfmpegInfo, String> {
+async fn install_ffmpeg(
+    app: AppHandle,
+    state: State<'_, MediaEngineState>,
+) -> Result<MediaEngineStatus, String> {
     #[cfg(not(target_os = "windows"))]
-    return Err(
-        "Automatic ffmpeg installation is currently available on Windows only.".to_string(),
-    );
+    {
+        let _ = (&app, &state);
+        Err("Automatic ffmpeg installation is currently available on Windows only.".to_string())
+    }
 
     #[cfg(target_os = "windows")]
     {
-        let app_data = app
-            .path()
-            .app_local_data_dir()
-            .map_err(|error| format!("Could not resolve the app data folder: {error}"))?;
-        let tools_dir = app_data.join("tools").join("ffmpeg");
-        let archive_path = tools_dir.join(FFMPEG_ARCHIVE_NAME);
+        if state.installing.swap(true, Ordering::SeqCst) {
+            return Err("An ffmpeg installation is already running.".to_string());
+        }
+        let _guard = InstallGuard(&state);
+        state.cancel_requested.store(false, Ordering::SeqCst);
+
+        let tools_dir = managed_tools_dir(&app)
+            .ok_or_else(|| "Could not resolve the app data folder.".to_string())?;
         let bin_dir = tools_dir.join("bin");
-        tokio::fs::create_dir_all(&tools_dir)
-            .await
-            .map_err(|error| format!("Could not create the ffmpeg folder: {error}"))?;
+        let staging_dir = tools_dir.join(format!(
+            "staging-{}-{}",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .map(|d| d.as_millis())
+                .unwrap_or_default()
+        ));
 
-        let client = reqwest::Client::builder()
-            .user_agent("GCCtoolkit ffmpeg installer")
-            .build()
-            .map_err(|error| format!("Could not initialize the downloader: {error}"))?;
-        let manifest = client
-            .get(FFMPEG_CHECKSUMS_URL)
-            .send()
-            .await
-            .and_then(reqwest::Response::error_for_status)
-            .map_err(|error| format!("Could not download ffmpeg checksums: {error}"))?
-            .text()
-            .await
-            .map_err(|error| format!("Could not read ffmpeg checksums: {error}"))?;
-        let expected = expected_checksum(&manifest, FFMPEG_ARCHIVE_NAME).ok_or_else(|| {
-            "The checksum manifest does not list the Windows ffmpeg ZIP.".to_string()
-        })?;
+        let outcome = install_ffmpeg_staged(&app, &state, &staging_dir, &bin_dir).await;
+        let _ = tokio::fs::remove_dir_all(&staging_dir).await;
+        let archive_sha256 = outcome?;
 
-        let mut response = client
-            .get(FFMPEG_ARCHIVE_URL)
-            .send()
-            .await
-            .and_then(reqwest::Response::error_for_status)
-            .map_err(|error| format!("Could not download ffmpeg: {error}"))?;
-        if response
-            .content_length()
-            .is_some_and(|length| length > MAX_FFMPEG_ARCHIVE_BYTES)
-        {
-            return Err("The ffmpeg archive exceeds the safe download size limit.".to_string());
+        // The managed copy is found by location, so the custom override is
+        // cleared rather than pointed at bin/ — `ffmpeg_path` now means custom.
+        let mut settings = load_settings(&app);
+        settings.ffmpeg_path = None;
+        settings.managed_archive_sha256 = Some(archive_sha256);
+        save_settings(&app, &settings)?;
+        state.remember_update(Some(false));
+
+        let status = media_engine_status(&app, &state);
+        if status.status != "ready" {
+            return Err(status.error.unwrap_or_else(|| {
+                "ffmpeg installation did not produce a working executable.".to_string()
+            }));
         }
-        let mut archive_file = tokio::fs::File::create(&archive_path)
-            .await
-            .map_err(|error| format!("Could not create the ffmpeg archive: {error}"))?;
-        let mut hasher = Sha256::new();
-        let mut downloaded_bytes = 0u64;
-        while let Some(chunk) = response
-            .chunk()
-            .await
-            .map_err(|error| format!("ffmpeg download failed: {error}"))?
-        {
-            downloaded_bytes += chunk.len() as u64;
-            if downloaded_bytes > MAX_FFMPEG_ARCHIVE_BYTES {
-                drop(archive_file);
-                let _ = tokio::fs::remove_file(&archive_path).await;
-                return Err("The ffmpeg archive exceeds the safe download size limit.".to_string());
-            }
-            hasher.update(&chunk);
-            tokio::io::AsyncWriteExt::write_all(&mut archive_file, &chunk)
-                .await
-                .map_err(|error| format!("Could not save ffmpeg: {error}"))?;
-        }
-        tokio::io::AsyncWriteExt::flush(&mut archive_file)
-            .await
-            .map_err(|error| format!("Could not finish saving ffmpeg: {error}"))?;
-        drop(archive_file);
-
-        let actual = format!("{:x}", hasher.finalize());
-        if actual != expected {
-            let _ = tokio::fs::remove_file(&archive_path).await;
-            return Err("The ffmpeg download failed SHA-256 verification.".to_string());
-        }
-
-        let archive_for_task = archive_path.clone();
-        let bin_for_task = bin_dir.clone();
-        tokio::task::spawn_blocking(move || extract_ffmpeg_tools(&archive_for_task, &bin_for_task))
-            .await
-            .map_err(|error| format!("ffmpeg extraction task failed: {error}"))??;
-        let _ = tokio::fs::remove_file(&archive_path).await;
-
-        set_ffmpeg_path(app, Some(bin_dir.join("ffmpeg.exe").display().to_string()))?
-            .ok_or_else(|| "ffmpeg installation did not produce an executable.".to_string())
+        Ok(status)
     }
 }
 
@@ -829,9 +1347,75 @@ fn game_download_dir(output_dir: &Path, app_id: &str, game_name: &str) -> Result
 #[cfg(test)]
 mod tests {
     use super::{
-        expected_checksum, game_download_dir, parse_ffmpeg_version, safe_game_folder_name,
+        classify_source, display_version, expected_checksum, game_download_dir,
+        parse_ffmpeg_version, safe_game_folder_name, update_available, FfmpegSource,
     };
     use std::path::Path;
+
+    #[test]
+    fn displays_release_versions_without_build_suffix() {
+        assert_eq!(display_version("8.1"), "8.1");
+        assert_eq!(display_version("8.1.1-full_build"), "8.1.1");
+        assert_eq!(display_version("7.1-essentials_build-www.gyan.dev"), "7.1");
+        assert_eq!(display_version("n8.1"), "8.1");
+        assert_eq!(display_version("n8.1.2-50-g1a748fe2cd-20260902"), "8.1.2");
+        assert_eq!(display_version("nightly"), "nightly");
+    }
+
+    #[test]
+    fn displays_nightly_builds_with_date() {
+        assert_eq!(
+            display_version("N-126390-g9fc8c785e2-20260902"),
+            "nightly build · 2 Sep 2026"
+        );
+        assert_eq!(display_version("N-126390-g9fc8c785e2"), "nightly build");
+        assert_eq!(
+            display_version("N-not-a-git-describe"),
+            "N-not-a-git-describe"
+        );
+    }
+
+    #[test]
+    fn classifies_source_by_location() {
+        let managed_bin = Path::new(r"C:\data\com.ackrosgaming.gcc\tools\ffmpeg\bin");
+        let managed_exe = managed_bin.join("ffmpeg.exe");
+        assert_eq!(
+            classify_source(&managed_exe, Some(managed_bin), true),
+            FfmpegSource::Managed
+        );
+        assert_eq!(
+            classify_source(&managed_exe, Some(managed_bin), false),
+            FfmpegSource::Managed
+        );
+        let elsewhere = Path::new(r"F:\ffmpeg\bin\ffmpeg.exe");
+        assert_eq!(
+            classify_source(elsewhere, Some(managed_bin), true),
+            FfmpegSource::Custom
+        );
+        assert_eq!(
+            classify_source(elsewhere, Some(managed_bin), false),
+            FfmpegSource::System
+        );
+        assert_eq!(
+            classify_source(elsewhere, None, false),
+            FfmpegSource::System
+        );
+    }
+
+    #[test]
+    fn compares_archive_hashes_for_updates() {
+        let a = "a".repeat(64);
+        let b = "b".repeat(64);
+        assert_eq!(update_available(Some(&a), Some(&a)), Some(false));
+        assert_eq!(
+            update_available(Some(&a), Some(&a.to_ascii_uppercase())),
+            Some(false)
+        );
+        assert_eq!(update_available(Some(&a), Some(&b)), Some(true));
+        assert_eq!(update_available(None, Some(&b)), None);
+        assert_eq!(update_available(Some(&a), None), None);
+        assert_eq!(update_available(Some(""), Some(&b)), None);
+    }
 
     #[test]
     fn sanitizes_game_name_for_cross_platform_folder() {
@@ -847,13 +1431,13 @@ mod tests {
     fn reads_exact_ffmpeg_checksum_entry() {
         let checksum = "a".repeat(64);
         let manifest = format!(
-            "{}  other.zip\n{} *ffmpeg-master-latest-win64-lgpl.zip\n",
+            "{}  other.zip\n{} *ffmpeg-n8.1-latest-win64-lgpl-8.1.zip\n",
             "b".repeat(64),
             checksum
         );
 
         assert_eq!(
-            expected_checksum(&manifest, "ffmpeg-master-latest-win64-lgpl.zip"),
+            expected_checksum(&manifest, "ffmpeg-n8.1-latest-win64-lgpl-8.1.zip"),
             Some(checksum)
         );
         assert_eq!(expected_checksum("invalid file.zip", "file.zip"), None);
@@ -1094,6 +1678,7 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_clipboard_manager::init())
+        .manage(MediaEngineState::default())
         .invoke_handler(tauri::generate_handler![
             get_app_metadata,
             load_history,
@@ -1103,6 +1688,9 @@ pub fn run() {
             find_ffmpeg,
             set_ffmpeg_path,
             install_ffmpeg,
+            cancel_ffmpeg_install,
+            check_ffmpeg_update,
+            reveal_ffmpeg_folder,
             get_default_download_dir,
             download_trailers,
         ])

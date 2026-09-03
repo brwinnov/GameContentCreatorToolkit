@@ -1,6 +1,6 @@
 # Pre-Task Context
 
-Last refreshed: 2026-08-28
+Last refreshed: 2026-09-03
 
 Read this file before starting repository work. Verify its claims against the
 current worktree because source code and Git history remain authoritative.
@@ -11,7 +11,8 @@ current worktree because source code and Git history remain authoritative.
 - The working feature downloads official Steam trailers through Steam's API and
   remuxes DASH media to MP4 with ffmpeg.
 - Windows MSI and Linux DEB/RPM packages are released through tag-driven
-  GitHub Actions. Version `0.1.4` is the current patch release candidate.
+  GitHub Actions. Version `0.1.4` is published; `0.1.5` (media-engine install
+  progress, release-build ffmpeg, update check) is prepared and untagged.
 - The frontend is plain HTML, CSS, and JavaScript under `app/src/`; the backend
   is Rust under `app/src-tauri/src/`.
 - `scripts/pwsh/download_steam_trailers.ps1` is the authoritative legacy script.
@@ -24,9 +25,11 @@ current worktree because source code and Git history remain authoritative.
 - Steam history is capped at 200 entries in `steam-history.json`. Windows
   `0.1.3` performs a one-time recovery from the legacy `com.brwinnov.ggt`
   WebView profile; two existing entries were recovered in local runtime testing.
-- The Home and Settings views display the detected ffmpeg version. Windows
-  Settings can select an existing ffmpeg/ffprobe pair or install a verified
-  BtbN LGPL pair without elevation.
+- Settings shows the media engine as `MediaEngineStatus` (notFound / ready /
+  broken, source managed / system / custom, display version). Windows can
+  select an existing ffmpeg/ffprobe pair or install the verified BtbN
+  `n8.1-latest` LGPL pair without elevation, with progress, cancel, staged
+  swap, and a manifest-hash update check (`Install latest` / `Up to date`).
 - Settings provides editable Default and NavyWhite1 themes plus user-created
   themes. Explicit updates, Save As, rename/delete, color customizations, and
   startup choice persist in WebView storage; Default cannot be renamed/deleted.
@@ -81,13 +84,21 @@ current worktree because source code and Git history remain authoritative.
   tools are under `tools\ffmpeg\bin`. Normal MSI update/uninstall preserves
   this data, but deleting the folder intentionally removes it.
 - Windows ffmpeg installation downloads only after user approval, verifies the
-  ZIP against BtbN's release checksum manifest, applies size limits, and
-  extracts only `ffmpeg.exe` and `ffprobe.exe`.
+  ZIP against BtbN's release checksum manifest, applies size limits, extracts
+  only `ffmpeg.exe` and `ffprobe.exe` into a staging folder, and replaces
+  `tools\ffmpeg\bin` only after the new binary passes `-version`.
+- `settings.json` `ffmpegPath` means a user-chosen custom path only; the
+  managed copy is recognized by location. `managedArchiveSha256` records the
+  installed archive hash for the update check.
+- Installer progress is emitted on `media-engine-progress`; the Steam
+  `download-progress` event is unchanged.
 - Remote media import requires URL, redirect, timeout, size, and content-type
   validation.
 - Font installation should be explicit, license-aware, per-user, and never
   silently elevated.
 - Preserve unrelated worktree changes and keep generated files generated.
+- User-facing text uses English (Ireland) spelling: `colour`, `customise`,
+  `initialise`, `organise`.
 
 ## Validation Baseline
 
@@ -114,8 +125,10 @@ current worktree because source code and Git history remain authoritative.
 - The SignPath application is submitted. Repository variable
   `SIGNPATH_ENABLED=false` temporarily permits clearly labeled unsigned tagged
   releases; switch it to `true` only after credentials and dashboard setup.
-- Managed ffmpeg installation still needs a clean Windows runtime test. Linux
-  package/runtime testing and Authenticode signing also remain outstanding.
+- The `0.1.5` managed ffmpeg flow (install, cancel, Install latest, Repair,
+  Show in folder) still needs a clean Windows runtime test before tagging.
+  Linux package/runtime testing and Authenticode signing also remain
+  outstanding.
 - Dependency audits currently report 0 known npm and Rust vulnerabilities.
   RustSec reports 18 non-vulnerability warnings, including a Linux GTK
   unsoundness advisory; these are tracked under `SEC-007`.
